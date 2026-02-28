@@ -1,0 +1,171 @@
+⚒️  Working directory : response_preprocess_outputs/2026-02-16/01-03-20_evalResults_evalplus
+
+====================================================
+     🐈‍⬛  Setting up the output directory  🐈‍⬛
+====================================================
+
+
+====================================================
+   🐈‍⬛  Running Soundness Evaluation using evalplus 🐈‍⬛
+====================================================
+
+Trying to load preprocessed samples... 
+😊  Successfully located the preprocessed samples at
+Now copying raw llm samples and generation meta data... 
+😊  Successfully copied llm gen hydra from: response_preprocess_outputs/2026-02-16/01-03-20/llmGenConfig_HydraCopy problems
+😊  Successfully copied raw preprocessed samples as reference!!
+⚒️  Now, calculating the ground truth...
+😊  Humaneval plus and ground truth loaded!! 😊
+⚒️  Conducting soundness evaluation...
+Reading samples...
+⚒️  Working directory : response_preprocess_outputs/2026-02-16/01-03-20_evalResults_evalplus
+
+====================================================
+     🐈‍⬛  Setting up the output directory  🐈‍⬛
+====================================================
+
+
+====================================================
+   🐈‍⬛  Running Soundness Evaluation using evalplus 🐈‍⬛
+====================================================
+
+Trying to load preprocessed samples... 
+😊  Successfully located the preprocessed samples at
+Now copying raw llm samples and generation meta data... 
+😊  Successfully copied llm gen hydra from: response_preprocess_outputs/2026-02-16/01-03-20/llmGenConfig_HydraCopy problems
+😊  Successfully copied raw preprocessed samples as reference!!
+⚒️  Now, calculating the ground truth...
+😊  Humaneval plus and ground truth loaded!! 😊
+⚒️  Conducting soundness evaluation...
+Reading samples...
+⚠️  Warning: Only 20 problems found in samples (expected 164)
+⚒️  Working directory : response_preprocess_outputs/2026-02-16/01-03-20_evalResults_evalplus
+
+====================================================
+     🐈‍⬛  Setting up the output directory  🐈‍⬛
+====================================================
+
+
+====================================================
+   🐈‍⬛  Running Soundness Evaluation using evalplus 🐈‍⬛
+====================================================
+
+Trying to load preprocessed samples... 
+😊  Successfully located the preprocessed samples at
+Now copying raw llm samples and generation meta data... 
+😊  Successfully copied llm gen hydra from: response_preprocess_outputs/2026-02-16/01-03-20/llmGenConfig_HydraCopy problems
+😊  Successfully copied raw preprocessed samples as reference!!
+⚒️  Now, calculating the ground truth...
+😊  Humaneval plus and ground truth loaded!! 😊
+⚒️  Conducting soundness evaluation...
+Reading samples...
+⚠️  Warning: Only 20 problems found in samples (expected 164)
+😊  Finished running evaluation -> now time to save the results 😊
+😊  File saved to response_preprocess_outputs/2026-02-16/01-03-20_evalResults_evalplus/soundness_eval_results_preprocessed_samples.jsonl 😊
+😊  Calculating pass@k 😊
+Base
+{'pass@1': 1.0}
+Base + Extra
+{'pass@1': 0.8}
+
+
+====================================================
+🐈‍⬛  Reformatting soundness results for next eval 🐈‍⬛
+====================================================
+
+⚒️  Working directory : response_preprocess_outputs/2026-02-16/01-03-20_evalResults_evalplus
+
+====================================================
+     🐈‍⬛  Setting up the output directory  🐈‍⬛
+====================================================
+
+
+====================================================
+   🐈‍⬛  Running Soundness Evaluation using evalplus 🐈‍⬛
+====================================================
+
+Trying to load preprocessed samples... 
+😊  Successfully located the preprocessed samples at
+😍 Found existing soundness run at response_preprocess_outputs/2026-02-16/01-03-20_evalResults_evalplus/soundness_eval_results_preprocessed_samples.jsonl!!
+	Loading and moving on...
+😊  Finished running evaluation -> now time to save the results 😊
+⚠️  File response_preprocess_outputs/2026-02-16/01-03-20_evalResults_evalplus/soundness_eval_results_preprocessed_samples.jsonl already exists, not overwriting ⚠️
+😊  Calculating pass@k 😊
+Base
+{'pass@1': 1.0}
+Base + Extra
+{'pass@1': 0.8}
+
+
+====================================================
+🐈‍⬛  Reformatting soundness results for next eval 🐈‍⬛
+====================================================
+
+⚒️  Working directory : response_preprocess_outputs/2026-02-16/01-03-20_evalResults_evalplus
+
+====================================================
+     🐈‍⬛  Setting up the output directory  🐈‍⬛
+====================================================
+
+
+====================================================
+   🐈‍⬛  Running Soundness Evaluation using evalplus 🐈‍⬛
+====================================================
+
+Trying to load preprocessed samples... 
+😊  Successfully located the preprocessed samples at
+😍 Found existing soundness run at response_preprocess_outputs/2026-02-16/01-03-20_evalResults_evalplus/soundness_eval_results_preprocessed_samples.jsonl!!
+	Loading and moving on...
+😊  Finished running evaluation -> now time to save the results 😊
+⚠️  File response_preprocess_outputs/2026-02-16/01-03-20_evalResults_evalplus/soundness_eval_results_preprocessed_samples.jsonl already exists, not overwriting ⚠️
+😊  Calculating pass@k 😊
+Base
+{'pass@1': 1.0}
+Base + Extra
+{'pass@1': 0.8}
+
+
+====================================================
+🐈‍⬛  Reformatting soundness results for next eval 🐈‍⬛
+====================================================
+
+
+====================================================
+         🐈‍⬛  Running Power Evaluation 🐈‍⬛
+====================================================
+
+😊  Loading buggy codes 😊
+😊  Evaluating each correct post condition 😊
+😊  Evaluating HumanEval/1, postcondition 0 😊
+😊  Evaluating HumanEval/0, postcondition 0 😊
+😊  Evaluating HumanEval/2, postcondition 0 😊
+😊  Evaluating HumanEval/3, postcondition 0 😊
+😊  Evaluating HumanEval/4, postcondition 0 😊
+😊  Evaluating HumanEval/5, postcondition 0 😊
+😊  Evaluating HumanEval/7, postcondition 0 😊
+😊  Evaluating HumanEval/6, postcondition 0 😊
+😊  Evaluating HumanEval/8, postcondition 0 😊
+😊  Evaluating HumanEval/9, postcondition 0 😊
+😊  Evaluating HumanEval/10, postcondition 0 😊
+😊  Evaluating HumanEval/11, postcondition 0 😊
+😊  Evaluating HumanEval/12, postcondition 0 😊
+😊  Evaluating HumanEval/13, postcondition 0 😊
+😊  Evaluating HumanEval/14, postcondition 0 😊
+😊  Evaluating HumanEval/16, postcondition 0 😊
+😊  Evaluating HumanEval/17, postcondition 0 😊
+😊  Evaluating HumanEval/18, postcondition 0 😊
+😊  Evaluating HumanEval/19, postcondition 0 😊
+😊  Evaluating HumanEval/15, postcondition 0 😊
+
+====================================================
+     🐈‍⬛  Finished Running Power Evaluation 🐈‍⬛
+====================================================
+
+😊  Saving power stats to response_preprocess_outputs/2026-02-16/01-03-20_evalResults_evalplus/power_eval_stats.txt 😊
+😊  Saving results to response_preprocess_outputs/2026-02-16/01-03-20_evalResults_evalplus/summary_eval_results.jsonl 😊
+
+====================================================
+        🐈‍⬛ Summary saved successfully! 🐈‍⬛
+====================================================
+
+🐈‍⬛  Done! 🐈‍⬛

@@ -1,0 +1,123 @@
+Number of correct post conditions (out of 1640): 20
+Number of complete post conditions (out of 1640): 14
+Number of bug complete post conditions (out of 1640): 18
+Number of post conditions with a base error (out of 1640): 0
+
+Number of problems with one correct post condition (out of 164): 20
+Number of problems with one complete post condition (out of 164): 14
+Number of problems with union complete post conditions (out of 164): 14
+Number of problems with one bug complete post condition (out of 164): 18
+Number of problems with one union bug complete post condition (out of 164): 18
+Number of problems with only base errors: 0
+
+First looking at test-based scores:
+Average score for one post condition: 0.9962378469172382
+Average score for one post condition per problem: 0.9962378469172382
+Average max correct score for one post condition per problem: 0.9962378469172382
+Average max union correct score per problem: 0.9962378469172382
+
+Now, looking at the code-based score:
+Average score for one post condition: 0.9980909406456092
+Average score for one post condition per problem: 0.9980909406456092
+Average max correct score for one post condition per problem: 0.9980909406456092
+Average max union correct score per problem: 0.9980909406456092
+
+Finally, a couple of natural code scores:
+Average score for one post condition: 1.0
+Average score for one post condition per problem: 1.0
+Average max correct score for one post condition per problem: 1.0
+
+Number of correct post conditions per problem:
+	HumanEval/1: 1
+	HumanEval/0: 1
+	HumanEval/2: 1
+	HumanEval/3: 1
+	HumanEval/4: 1
+	HumanEval/5: 1
+	HumanEval/7: 1
+	HumanEval/6: 1
+	HumanEval/8: 1
+	HumanEval/9: 1
+	HumanEval/10: 1
+	HumanEval/11: 1
+	HumanEval/12: 1
+	HumanEval/13: 1
+	HumanEval/14: 1
+	HumanEval/16: 1
+	HumanEval/17: 1
+	HumanEval/18: 1
+	HumanEval/19: 1
+	HumanEval/15: 1
+Number of complete post conditions per problem:
+	HumanEval/0: 1
+	HumanEval/3: 1
+	HumanEval/4: 1
+	HumanEval/5: 1
+	HumanEval/7: 1
+	HumanEval/8: 1
+	HumanEval/11: 1
+	HumanEval/12: 1
+	HumanEval/13: 1
+	HumanEval/16: 1
+	HumanEval/17: 1
+	HumanEval/18: 1
+	HumanEval/19: 1
+	HumanEval/15: 1
+Number of problems with union complete post conditions:
+	HumanEval/0: True
+	HumanEval/3: True
+	HumanEval/4: True
+	HumanEval/5: True
+	HumanEval/7: True
+	HumanEval/8: True
+	HumanEval/11: True
+	HumanEval/12: True
+	HumanEval/13: True
+	HumanEval/16: True
+	HumanEval/17: True
+	HumanEval/18: True
+	HumanEval/19: True
+	HumanEval/15: True
+Max correct score for one post condition per problem:
+	HumanEval/1: 0.9989608917438125
+	HumanEval/0: 1.0
+	HumanEval/2: 0.9677315651999197
+	HumanEval/3: 1.0
+	HumanEval/4: 1.0
+	HumanEval/5: 1.0
+	HumanEval/7: 1.0
+	HumanEval/6: 0.9999097337144577
+	HumanEval/8: 1.0
+	HumanEval/9: 0.9999676165803109
+	HumanEval/10: 0.9671030067451698
+	HumanEval/11: 1.0
+	HumanEval/12: 1.0
+	HumanEval/13: 1.0
+	HumanEval/14: 0.9910841243610929
+	HumanEval/16: 1.0
+	HumanEval/17: 1.0
+	HumanEval/18: 1.0
+	HumanEval/19: 1.0
+	HumanEval/15: 1.0
+Max union correct score per problem:
+	HumanEval/1: 0.9989608917438125
+	HumanEval/0: 1.0
+	HumanEval/2: 0.9677315651999197
+	HumanEval/3: 1.0
+	HumanEval/4: 1.0
+	HumanEval/5: 1.0
+	HumanEval/7: 1.0
+	HumanEval/6: 0.9999097337144577
+	HumanEval/8: 1.0
+	HumanEval/9: 0.9999676165803109
+	HumanEval/10: 0.9671030067451698
+	HumanEval/11: 1.0
+	HumanEval/12: 1.0
+	HumanEval/13: 1.0
+	HumanEval/14: 0.9910841243610929
+	HumanEval/16: 1.0
+	HumanEval/17: 1.0
+	HumanEval/18: 1.0
+	HumanEval/19: 1.0
+	HumanEval/15: 1.0
+Number of base errors per problem:

@@ -1,0 +1,144 @@
+⚒️  Working directory : response_preprocess_outputs/2026-02-16/01-03-20
+
+====================================================
+     🐈‍⬛  Setting up the output directory  🐈‍⬛
+====================================================
+
+Trying to load raw llm samples... 
+😊  Successfully loaded llm-generated code for 34 problems
+	Code loaded from: ['llm_gen_outputs/2026-01-22/15-15-33/samples_partial.jsonl']
+Now copying raw llm samples and generation meta data... 
+😊  Successfully copied llm gen hydra from: llm_gen_outputs/2026-01-22/15-15-33/.hydra problems
+😊  Successfully raw samples as reference!!
+
+====================================================
+          🐈‍⬛  Loading Benchmark Code 🐈‍⬛
+====================================================
+
+Loading benchmark problems from evalplus...
+😊  Successfully loaded 164 problems
+
+====================================================
+         🐈‍⬛  Preprocessing all Samples 🐈‍⬛
+====================================================
+
+	Added 1 samples for problem HumanEval/0
+	🐝 Duplicate summary, there are:
+		1 unique solutions on the raw character level
+		1 unique solutions on the lexical code level
+		1 unique solutions on the syntax level
+	Added 1 samples for problem HumanEval/1
+	🐝 Duplicate summary, there are:
+		1 unique solutions on the raw character level
+		1 unique solutions on the lexical code level
+		1 unique solutions on the syntax level
+	Added 1 samples for problem HumanEval/2
+	🐝 Duplicate summary, there are:
+		1 unique solutions on the raw character level
+		1 unique solutions on the lexical code level
+		1 unique solutions on the syntax level
+	Added 1 samples for problem HumanEval/3
+	🐝 Duplicate summary, there are:
+		1 unique solutions on the raw character level
+		1 unique solutions on the lexical code level
+		1 unique solutions on the syntax level
+	Added 1 samples for problem HumanEval/4
+	🐝 Duplicate summary, there are:
+		1 unique solutions on the raw character level
+		1 unique solutions on the lexical code level
+		1 unique solutions on the syntax level
+	Added 1 samples for problem HumanEval/5
+	🐝 Duplicate summary, there are:
+		1 unique solutions on the raw character level
+		1 unique solutions on the lexical code level
+		1 unique solutions on the syntax level
+	Added 1 samples for problem HumanEval/6
+	🐝 Duplicate summary, there are:
+		1 unique solutions on the raw character level
+		1 unique solutions on the lexical code level
+		1 unique solutions on the syntax level
+	Added 1 samples for problem HumanEval/7
+	🐝 Duplicate summary, there are:
+		1 unique solutions on the raw character level
+		1 unique solutions on the lexical code level
+		1 unique solutions on the syntax level
+	Added 1 samples for problem HumanEval/8
+	🐝 Duplicate summary, there are:
+		1 unique solutions on the raw character level
+		1 unique solutions on the lexical code level
+		1 unique solutions on the syntax level
+	Added 1 samples for problem HumanEval/9
+	🐝 Duplicate summary, there are:
+		1 unique solutions on the raw character level
+		1 unique solutions on the lexical code level
+		1 unique solutions on the syntax level
+	Added 1 samples for problem HumanEval/10
+	🐝 Duplicate summary, there are:
+		1 unique solutions on the raw character level
+		1 unique solutions on the lexical code level
+		1 unique solutions on the syntax level
+	Added 1 samples for problem HumanEval/11
+	🐝 Duplicate summary, there are:
+		1 unique solutions on the raw character level
+		1 unique solutions on the lexical code level
+		1 unique solutions on the syntax level
+	Added 1 samples for problem HumanEval/12
+	🐝 Duplicate summary, there are:
+		1 unique solutions on the raw character level
+		1 unique solutions on the lexical code level
+		1 unique solutions on the syntax level
+	Added 1 samples for problem HumanEval/13
+	🐝 Duplicate summary, there are:
+		1 unique solutions on the raw character level
+		1 unique solutions on the lexical code level
+		1 unique solutions on the syntax level
+	Added 1 samples for problem HumanEval/14
+	🐝 Duplicate summary, there are:
+		1 unique solutions on the raw character level
+		1 unique solutions on the lexical code level
+		1 unique solutions on the syntax level
+	Added 1 samples for problem HumanEval/15
+	🐝 Duplicate summary, there are:
+		1 unique solutions on the raw character level
+		1 unique solutions on the lexical code level
+		1 unique solutions on the syntax level
+	Added 1 samples for problem HumanEval/16
+	🐝 Duplicate summary, there are:
+		1 unique solutions on the raw character level
+		1 unique solutions on the lexical code level
+		1 unique solutions on the syntax level
+	Added 1 samples for problem HumanEval/17
+	🐝 Duplicate summary, there are:
+		1 unique solutions on the raw character level
+		1 unique solutions on the lexical code level
+		1 unique solutions on the syntax level
+	Added 1 samples for problem HumanEval/18
+	🐝 Duplicate summary, there are:
+		1 unique solutions on the raw character level
+		1 unique solutions on the lexical code level
+		1 unique solutions on the syntax level
+	Added 1 samples for problem HumanEval/19
+⚠️  Skipping HumanEval/20: completion_pre is None
+⚠️  Skipping HumanEval/21: completion_pre is None
+⚠️  Skipping HumanEval/22: completion_pre is None
+⚠️  Skipping HumanEval/23: completion_pre is None
+⚠️  Skipping HumanEval/24: completion_pre is None
+⚠️  Skipping HumanEval/25: completion_pre is None
+⚠️  Skipping HumanEval/26: completion_pre is None
+⚠️  Skipping HumanEval/27: completion_pre is None
+⚠️  Skipping HumanEval/28: completion_pre is None
+⚠️  Skipping HumanEval/29: completion_pre is None
+⚠️  Skipping HumanEval/30: completion_pre is None
+⚠️  Skipping HumanEval/31: completion_pre is None
+⚠️  Skipping HumanEval/32: completion_pre is None
+⚠️  Skipping HumanEval/33: completion_pre is None
+
+====================================================
+🐈‍⬛ Completed Code Preprocessing, Saving jsonl file! 🐈‍⬛
+====================================================
+
+
+====================================================
+😻 Jsonl Saved to response_preprocess_outputs/2026-02-16/01-03-20/preprocessed_samples.jsonl 😻
+====================================================
+

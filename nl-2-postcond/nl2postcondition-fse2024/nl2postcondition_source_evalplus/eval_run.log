@@ -1,0 +1,325 @@
+response_preprocess_outputs/2026-02-16/01-03-20
+Output folder is response_preprocess_outputs/2026-02-16/01-03-20_evalResults_evalplus
+Warning, output folder already exists. Do you want to delete it? (y/n)
+Do you want to write to a different folder instead? (y/n)
+⚒️  Now, loading in humaneval...
+🪅😍😍  Success!! 😍😍🪅
+⚒️  Working directory : response_preprocess_outputs/2026-02-16/01-03-20_evalResults_evalplus
+
+====================================================
+     🐈‍⬛  Setting up the output directory  🐈‍⬛
+====================================================
+
+
+====================================================
+   🐈‍⬛  Running Soundness Evaluation using evalplus 🐈‍⬛
+====================================================
+
+Trying to load preprocessed samples... 
+😊  Successfully located the preprocessed samples at
+Now copying raw llm samples and generation meta data... 
+😊  Successfully copied llm gen hydra from: response_preprocess_outputs/2026-02-16/01-03-20/llmGenConfig_HydraCopy problems
+😊  Successfully copied raw preprocessed samples as reference!!
+⚒️  Now, calculating the ground truth...
+Load from /home/22010759/.cache/evalplus/6de56ed602581f9691d209e17867840b.pkl
+😊  Humaneval plus and ground truth loaded!! 😊
+⚒️  Conducting soundness evaluation...
+Reading samples...
+0it [00:00, ?it/s]20it [00:00, 764.43it/s]
+⚠️  Warning: Only 20 problems found in samples (expected 164)
+  0%|          | 0/20 [00:00<?, ?it/s]  0%|          | 0/20 [00:00<?, ?it/s]
+concurrent.futures.process._RemoteTraceback: 
+"""
+Traceback (most recent call last):
+  File "/home/22010759/miniconda3/envs/nl2postcond/lib/python3.11/concurrent/futures/process.py", line 261, in _process_worker
+    r = call_item.fn(*call_item.args, **call_item.kwargs)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/22010759/Minhk16/nl2postcond/nl-2-postcond/nl2postcondition-fse2024/nl2postcondition_source_evalplus/run_postcondition_evaluation.py", line 108, in check_correctness
+    ret["base"] = untrusted_check(
+                  ^^^^^^^^^^^^^^^^
+TypeError: untrusted_check() got an unexpected keyword argument 'min_time_limit'
+"""
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/22010759/Minhk16/nl2postcond/nl-2-postcond/nl2postcondition-fse2024/nl2postcondition_source_evalplus/run_postcondition_evaluation.py", line 908, in <module>
+    main()
+  File "/home/22010759/Minhk16/nl2postcond/nl-2-postcond/nl2postcondition-fse2024/nl2postcondition_source_evalplus/run_postcondition_evaluation.py", line 904, in main
+    runEvalofPostconditions(args, args.samples_post_conditions, output_folder, problems)
+  File "/home/22010759/Minhk16/nl2postcond/nl-2-postcond/nl2postcondition-fse2024/nl2postcondition_source_evalplus/run_postcondition_evaluation.py", line 738, in runEvalofPostconditions
+    soundness_results = evaluate_post_condition_soundness(flags, n_workers, postcondition_sample_dir, print_and_log, log_only, problems)
+                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/22010759/Minhk16/nl2postcond/nl-2-postcond/nl2postcondition-fse2024/nl2postcondition_source_evalplus/run_postcondition_evaluation.py", line 400, in evaluate_post_condition_soundness
+    result = future.result()
+             ^^^^^^^^^^^^^^^
+  File "/home/22010759/miniconda3/envs/nl2postcond/lib/python3.11/concurrent/futures/_base.py", line 449, in result
+    return self.__get_result()
+           ^^^^^^^^^^^^^^^^^^^
+  File "/home/22010759/miniconda3/envs/nl2postcond/lib/python3.11/concurrent/futures/_base.py", line 401, in __get_result
+    raise self._exception
+TypeError: untrusted_check() got an unexpected keyword argument 'min_time_limit'
+Stucking for 10 seconds... 20 left
+First five remaining:
+HumanEval/0_0_llmResponseNum_0
+HumanEval/11_11_llmResponseNum_0
+HumanEval/5_5_llmResponseNum_0
+HumanEval/16_16_llmResponseNum_0
+HumanEval/19_19_llmResponseNum_0
+Stucking for 10 seconds... 20 left
+First five remaining:
+HumanEval/0_0_llmResponseNum_0
+HumanEval/11_11_llmResponseNum_0
+HumanEval/5_5_llmResponseNum_0
+HumanEval/16_16_llmResponseNum_0
+HumanEval/19_19_llmResponseNum_0
+Stucking for 10 seconds... 20 left
+First five remaining:
+HumanEval/0_0_llmResponseNum_0
+HumanEval/11_11_llmResponseNum_0
+HumanEval/5_5_llmResponseNum_0
+HumanEval/16_16_llmResponseNum_0
+HumanEval/19_19_llmResponseNum_0
+Stucking for 10 seconds... 20 left
+First five remaining:
+HumanEval/0_0_llmResponseNum_0
+HumanEval/11_11_llmResponseNum_0
+HumanEval/5_5_llmResponseNum_0
+HumanEval/16_16_llmResponseNum_0
+HumanEval/19_19_llmResponseNum_0
+Stucking for 10 seconds... 20 left
+First five remaining:
+HumanEval/0_0_llmResponseNum_0
+HumanEval/11_11_llmResponseNum_0
+HumanEval/5_5_llmResponseNum_0
+HumanEval/16_16_llmResponseNum_0
+HumanEval/19_19_llmResponseNum_0
+Stucking for 10 seconds... 20 left
+First five remaining:
+HumanEval/0_0_llmResponseNum_0
+HumanEval/11_11_llmResponseNum_0
+HumanEval/5_5_llmResponseNum_0
+HumanEval/16_16_llmResponseNum_0
+HumanEval/19_19_llmResponseNum_0
+Stucking for 10 seconds... 20 left
+First five remaining:
+HumanEval/0_0_llmResponseNum_0
+HumanEval/11_11_llmResponseNum_0
+HumanEval/5_5_llmResponseNum_0
+HumanEval/16_16_llmResponseNum_0
+HumanEval/19_19_llmResponseNum_0
+Stucking for 10 seconds... 20 left
+First five remaining:
+HumanEval/0_0_llmResponseNum_0
+HumanEval/11_11_llmResponseNum_0
+HumanEval/5_5_llmResponseNum_0
+HumanEval/16_16_llmResponseNum_0
+HumanEval/19_19_llmResponseNum_0
+Stucking for 10 seconds... 20 left
+First five remaining:
+HumanEval/0_0_llmResponseNum_0
+HumanEval/11_11_llmResponseNum_0
+HumanEval/5_5_llmResponseNum_0
+HumanEval/16_16_llmResponseNum_0
+HumanEval/19_19_llmResponseNum_0
+Stucking for 10 seconds... 20 left
+First five remaining:
+HumanEval/0_0_llmResponseNum_0
+HumanEval/11_11_llmResponseNum_0
+HumanEval/5_5_llmResponseNum_0
+HumanEval/16_16_llmResponseNum_0
+HumanEval/19_19_llmResponseNum_0
+Stucking for 10 seconds... 20 left
+First five remaining:
+HumanEval/0_0_llmResponseNum_0
+HumanEval/11_11_llmResponseNum_0
+HumanEval/5_5_llmResponseNum_0
+HumanEval/16_16_llmResponseNum_0
+HumanEval/19_19_llmResponseNum_0
+Stucking for 10 seconds... 20 left
+First five remaining:
+HumanEval/0_0_llmResponseNum_0
+HumanEval/11_11_llmResponseNum_0
+HumanEval/5_5_llmResponseNum_0
+HumanEval/16_16_llmResponseNum_0
+HumanEval/19_19_llmResponseNum_0
+Stucking for 10 seconds... 20 left
+First five remaining:
+HumanEval/0_0_llmResponseNum_0
+HumanEval/11_11_llmResponseNum_0
+HumanEval/5_5_llmResponseNum_0
+HumanEval/16_16_llmResponseNum_0
+HumanEval/19_19_llmResponseNum_0
+Stucking for 10 seconds... 20 left
+First five remaining:
+HumanEval/0_0_llmResponseNum_0
+HumanEval/11_11_llmResponseNum_0
+HumanEval/5_5_llmResponseNum_0
+HumanEval/16_16_llmResponseNum_0
+HumanEval/19_19_llmResponseNum_0
+Stucking for 10 seconds... 20 left
+First five remaining:
+HumanEval/0_0_llmResponseNum_0
+HumanEval/11_11_llmResponseNum_0
+HumanEval/5_5_llmResponseNum_0
+HumanEval/16_16_llmResponseNum_0
+HumanEval/19_19_llmResponseNum_0
+Stucking for 10 seconds... 20 left
+First five remaining:
+HumanEval/0_0_llmResponseNum_0
+HumanEval/11_11_llmResponseNum_0
+HumanEval/5_5_llmResponseNum_0
+HumanEval/16_16_llmResponseNum_0
+HumanEval/19_19_llmResponseNum_0
+Stucking for 10 seconds... 20 left
+First five remaining:
+HumanEval/0_0_llmResponseNum_0
+HumanEval/11_11_llmResponseNum_0
+HumanEval/5_5_llmResponseNum_0
+HumanEval/16_16_llmResponseNum_0
+HumanEval/19_19_llmResponseNum_0
+Stucking for 10 seconds... 20 left
+First five remaining:
+HumanEval/0_0_llmResponseNum_0
+HumanEval/11_11_llmResponseNum_0
+HumanEval/5_5_llmResponseNum_0
+HumanEval/16_16_llmResponseNum_0
+HumanEval/19_19_llmResponseNum_0
+Stucking for 10 seconds... 20 left
+First five remaining:
+HumanEval/0_0_llmResponseNum_0
+HumanEval/11_11_llmResponseNum_0
+HumanEval/5_5_llmResponseNum_0
+HumanEval/16_16_llmResponseNum_0
+HumanEval/19_19_llmResponseNum_0
+Stucking for 10 seconds... 20 left
+First five remaining:
+HumanEval/0_0_llmResponseNum_0
+HumanEval/11_11_llmResponseNum_0
+HumanEval/5_5_llmResponseNum_0
+HumanEval/16_16_llmResponseNum_0
+HumanEval/19_19_llmResponseNum_0
+Stucking for 10 seconds... 20 left
+First five remaining:
+HumanEval/0_0_llmResponseNum_0
+HumanEval/11_11_llmResponseNum_0
+HumanEval/5_5_llmResponseNum_0
+HumanEval/16_16_llmResponseNum_0
+HumanEval/19_19_llmResponseNum_0
+Stucking for 10 seconds... 20 left
+First five remaining:
+HumanEval/0_0_llmResponseNum_0
+HumanEval/11_11_llmResponseNum_0
+HumanEval/5_5_llmResponseNum_0
+HumanEval/16_16_llmResponseNum_0
+HumanEval/19_19_llmResponseNum_0
+Stucking for 10 seconds... 20 left
+First five remaining:
+HumanEval/0_0_llmResponseNum_0
+HumanEval/11_11_llmResponseNum_0
+HumanEval/5_5_llmResponseNum_0
+HumanEval/16_16_llmResponseNum_0
+HumanEval/19_19_llmResponseNum_0
+Stucking for 10 seconds... 20 left
+First five remaining:
+HumanEval/0_0_llmResponseNum_0
+HumanEval/11_11_llmResponseNum_0
+HumanEval/5_5_llmResponseNum_0
+HumanEval/16_16_llmResponseNum_0
+HumanEval/19_19_llmResponseNum_0
+Stucking for 10 seconds... 20 left
+First five remaining:
+HumanEval/0_0_llmResponseNum_0
+HumanEval/11_11_llmResponseNum_0
+HumanEval/5_5_llmResponseNum_0
+HumanEval/16_16_llmResponseNum_0
+HumanEval/19_19_llmResponseNum_0
+Stucking for 10 seconds... 20 left
+First five remaining:
+HumanEval/0_0_llmResponseNum_0
+HumanEval/11_11_llmResponseNum_0
+HumanEval/5_5_llmResponseNum_0
+HumanEval/16_16_llmResponseNum_0
+HumanEval/19_19_llmResponseNum_0
+Stucking for 10 seconds... 20 left
+First five remaining:
+HumanEval/0_0_llmResponseNum_0
+HumanEval/11_11_llmResponseNum_0
+HumanEval/5_5_llmResponseNum_0
+HumanEval/16_16_llmResponseNum_0
+HumanEval/19_19_llmResponseNum_0
+Stucking for 10 seconds... 20 left
+First five remaining:
+HumanEval/0_0_llmResponseNum_0
+HumanEval/11_11_llmResponseNum_0
+HumanEval/5_5_llmResponseNum_0
+HumanEval/16_16_llmResponseNum_0
+HumanEval/19_19_llmResponseNum_0
+Stucking for 10 seconds... 20 left
+First five remaining:
+HumanEval/0_0_llmResponseNum_0
+HumanEval/11_11_llmResponseNum_0
+HumanEval/5_5_llmResponseNum_0
+HumanEval/16_16_llmResponseNum_0
+HumanEval/19_19_llmResponseNum_0
+Stucking for 10 seconds... 20 left
+First five remaining:
+HumanEval/0_0_llmResponseNum_0
+HumanEval/11_11_llmResponseNum_0
+HumanEval/5_5_llmResponseNum_0
+HumanEval/16_16_llmResponseNum_0
+HumanEval/19_19_llmResponseNum_0
+Stucking for 10 seconds... 20 left
+First five remaining:
+HumanEval/0_0_llmResponseNum_0
+HumanEval/11_11_llmResponseNum_0
+HumanEval/5_5_llmResponseNum_0
+HumanEval/16_16_llmResponseNum_0
+HumanEval/19_19_llmResponseNum_0
+Stucking for 10 seconds... 20 left
+First five remaining:
+HumanEval/0_0_llmResponseNum_0
+HumanEval/11_11_llmResponseNum_0
+HumanEval/5_5_llmResponseNum_0
+HumanEval/16_16_llmResponseNum_0
+HumanEval/19_19_llmResponseNum_0
+Stucking for 10 seconds... 20 left
+First five remaining:
+HumanEval/0_0_llmResponseNum_0
+HumanEval/11_11_llmResponseNum_0
+HumanEval/5_5_llmResponseNum_0
+HumanEval/16_16_llmResponseNum_0
+HumanEval/19_19_llmResponseNum_0
+Stucking for 10 seconds... 20 left
+First five remaining:
+HumanEval/0_0_llmResponseNum_0
+HumanEval/11_11_llmResponseNum_0
+HumanEval/5_5_llmResponseNum_0
+HumanEval/16_16_llmResponseNum_0
+HumanEval/19_19_llmResponseNum_0
+Stucking for 10 seconds... 20 left
+First five remaining:
+HumanEval/0_0_llmResponseNum_0
+HumanEval/11_11_llmResponseNum_0
+HumanEval/5_5_llmResponseNum_0
+HumanEval/16_16_llmResponseNum_0
+HumanEval/19_19_llmResponseNum_0
+Stucking for 10 seconds... 20 left
+First five remaining:
+HumanEval/0_0_llmResponseNum_0
+HumanEval/11_11_llmResponseNum_0
+HumanEval/5_5_llmResponseNum_0
+HumanEval/16_16_llmResponseNum_0
+HumanEval/19_19_llmResponseNum_0
+Stucking for 10 seconds... 20 left
+First five remaining:
+HumanEval/0_0_llmResponseNum_0
+HumanEval/11_11_llmResponseNum_0
+HumanEval/5_5_llmResponseNum_0
+HumanEval/16_16_llmResponseNum_0
+HumanEval/19_19_llmResponseNum_0
+Stucking for 10 seconds... 20 left
+First five remaining:
+HumanEval/0_0_llmResponseNum_0
+HumanEval/11_11_llmResponseNum_0
+HumanEval/5_5_llmResponseNum_0

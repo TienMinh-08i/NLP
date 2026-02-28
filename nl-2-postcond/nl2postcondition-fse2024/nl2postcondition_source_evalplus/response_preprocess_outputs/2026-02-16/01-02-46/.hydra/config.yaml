@@ -1,0 +1,21 @@
+experiment:
+  model: models/gemini-2.5-flash
+  temperature: 0.7
+  n_model_responses: 1
+  n_per_model_call: 1
+  to_generate: postcondition
+  samplesFolder: llm_gen_outputs/2026-01-22/15-15-33
+  has_reference_code: true
+  prompt_v: base
+  system_prompt: You are a programming assistant that generates executable python
+    only. You generate correct code, so you only generate code you are sure of. You
+    have Python comments explaining your intent when possible.
+api:
+  name: gemini
+  key: GEMINI_API_KEY
+benchmarks:
+  name: evalplus
+  run_all: true
+  run_range: false
+  run_start: HumanEval/1
+  run_end: HumanEval/163

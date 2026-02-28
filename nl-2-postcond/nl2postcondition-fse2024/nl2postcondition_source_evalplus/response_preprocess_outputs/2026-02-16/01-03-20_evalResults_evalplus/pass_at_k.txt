@@ -1,0 +1,4 @@
+Base
+{'pass@1': 1.0}
+Base + Extra
+{'pass@1': 0.8}

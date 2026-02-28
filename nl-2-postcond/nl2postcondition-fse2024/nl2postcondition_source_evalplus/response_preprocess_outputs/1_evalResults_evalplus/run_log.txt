@@ -1,0 +1,211 @@
+⚒️  Working directory : ./response_preprocess_outputs/1_evalResults_evalplus
+
+====================================================
+     🐈‍⬛  Setting up the output directory  🐈‍⬛
+====================================================
+
+
+====================================================
+   🐈‍⬛  Running Soundness Evaluation using evalplus 🐈‍⬛
+====================================================
+
+Trying to load preprocessed samples... 
+😊  Successfully located the preprocessed samples at
+Now copying raw llm samples and generation meta data... 
+😊  Successfully copied llm gen hydra from: ./response_preprocess_outputs/1/llmGenConfig_HydraCopy problems
+😊  Successfully copied raw preprocessed samples as reference!!
+⚒️  Now, calculating the ground truth...
+😊  Humaneval plus and ground truth loaded!! 😊
+⚒️  Conducting soundness evaluation...
+Reading samples...
+⚠️  Warning: Only 163 problems found in samples (expected 164)
+😊  Finished running evaluation -> now time to save the results 😊
+😊  File saved to ./response_preprocess_outputs/1_evalResults_evalplus/soundness_eval_results_preprocessed_samples.jsonl 😊
+😊  Calculating pass@k 😊
+Base
+{'pass@1': 0.9570552147239264}
+Base + Extra
+{'pass@1': 0.8282208588957055}
+
+
+====================================================
+🐈‍⬛  Reformatting soundness results for next eval 🐈‍⬛
+====================================================
+
+
+====================================================
+         🐈‍⬛  Running Power Evaluation 🐈‍⬛
+====================================================
+
+😊  Loading buggy codes 😊
+😊  Evaluating each correct post condition 😊
+😊  Evaluating HumanEval/1, postcondition 0 😊
+😊  Evaluating HumanEval/5, postcondition 0 😊
+😊  Evaluating HumanEval/4, postcondition 0 😊
+😊  Evaluating HumanEval/3, postcondition 0 😊
+😊  Evaluating HumanEval/0, postcondition 0 😊
+😊  Evaluating HumanEval/2, postcondition 0 😊
+😊  Evaluating HumanEval/7, postcondition 0 😊
+😊  Evaluating HumanEval/6, postcondition 0 😊
+😊  Evaluating HumanEval/8, postcondition 0 😊
+😊  Evaluating HumanEval/12, postcondition 0 😊
+😊  Evaluating HumanEval/9, postcondition 0 😊
+😊  Evaluating HumanEval/11, postcondition 0 😊
+😊  Evaluating HumanEval/10, postcondition 0 😊
+😊  Evaluating HumanEval/14, postcondition 0 😊
+😊  Evaluating HumanEval/13, postcondition 0 😊
+😊  Evaluating HumanEval/19, postcondition 0 😊
+😊  Evaluating HumanEval/17, postcondition 0 😊
+😊  Evaluating HumanEval/16, postcondition 0 😊
+😊  Evaluating HumanEval/20, postcondition 0 😊
+😊  Evaluating HumanEval/20, postcondition 1 😊
+😊  Evaluating HumanEval/21, postcondition 0 😊
+😊  Evaluating HumanEval/18, postcondition 0 😊
+😊  Evaluating HumanEval/23, postcondition 0 😊
+😊  Evaluating HumanEval/22, postcondition 0 😊
+😊  Evaluating HumanEval/26, postcondition 0 😊
+😊  Evaluating HumanEval/27, postcondition 0 😊
+😊  Evaluating HumanEval/28, postcondition 0 😊
+😊  Evaluating HumanEval/30, postcondition 0 😊
+😊  Evaluating HumanEval/29, postcondition 0 😊
+😊  Evaluating HumanEval/24, postcondition 0 😊
+😊  Evaluating HumanEval/33, postcondition 0 😊
+😊  Evaluating HumanEval/31, postcondition 0 😊
+😊  Evaluating HumanEval/34, postcondition 0 😊
+😊  Evaluating HumanEval/35, postcondition 0 😊
+😊  Evaluating HumanEval/39, postcondition 0 😊
+😊  Evaluating HumanEval/37, postcondition 0 😊
+😊  Evaluating HumanEval/38, postcondition 0 😊
+😊  Evaluating HumanEval/41, postcondition 0 😊
+😊  Evaluating HumanEval/42, postcondition 0 😊
+😊  Evaluating HumanEval/43, postcondition 0 😊
+😊  Evaluating HumanEval/40, postcondition 0 😊
+😊  Evaluating HumanEval/44, postcondition 0 😊
+😊  Evaluating HumanEval/45, postcondition 0 😊
+😊  Evaluating HumanEval/36, postcondition 0 😊
+😊  Evaluating HumanEval/48, postcondition 0 😊
+😊  Evaluating HumanEval/47, postcondition 0 😊
+😊  Evaluating HumanEval/50, postcondition 0 😊
+😊  Evaluating HumanEval/52, postcondition 0 😊
+😊  Evaluating HumanEval/15, postcondition 0 😊
+😊  Evaluating HumanEval/51, postcondition 0 😊
+😊  Evaluating HumanEval/53, postcondition 0 😊
+😊  Evaluating HumanEval/55, postcondition 0 😊
+😊  Evaluating HumanEval/54, postcondition 0 😊
+😊  Evaluating HumanEval/56, postcondition 0 😊
+😊  Evaluating HumanEval/57, postcondition 0 😊
+😊  Evaluating HumanEval/58, postcondition 0 😊
+😊  Evaluating HumanEval/60, postcondition 0 😊
+😊  Evaluating HumanEval/63, postcondition 0 😊
+😊  Evaluating HumanEval/62, postcondition 0 😊
+😊  Evaluating HumanEval/64, postcondition 0 😊
+😊  Evaluating HumanEval/65, postcondition 0 😊
+😊  Evaluating HumanEval/66, postcondition 0 😊
+😊  Evaluating HumanEval/67, postcondition 0 😊
+😊  Evaluating HumanEval/68, postcondition 0 😊
+😊  Evaluating HumanEval/61, postcondition 0 😊
+😊  Evaluating HumanEval/69, postcondition 0 😊
+😊  Evaluating HumanEval/70, postcondition 0 😊
+😊  Evaluating HumanEval/72, postcondition 0 😊
+😊  Evaluating HumanEval/71, postcondition 0 😊
+😊  Evaluating HumanEval/73, postcondition 0 😊
+😊  Evaluating HumanEval/74, postcondition 0 😊
+😊  Evaluating HumanEval/75, postcondition 0 😊
+😊  Evaluating HumanEval/77, postcondition 0 😊
+😊  Evaluating HumanEval/78, postcondition 0 😊
+😊  Evaluating HumanEval/76, postcondition 0 😊
+😊  Evaluating HumanEval/79, postcondition 0 😊
+😊  Evaluating HumanEval/80, postcondition 0 😊
+😊  Evaluating HumanEval/82, postcondition 0 😊
+😊  Evaluating HumanEval/81, postcondition 0 😊
+😊  Evaluating HumanEval/84, postcondition 0 😊
+😊  Evaluating HumanEval/85, postcondition 0 😊
+😊  Evaluating HumanEval/86, postcondition 0 😊
+😊  Evaluating HumanEval/87, postcondition 0 😊
+😊  Evaluating HumanEval/88, postcondition 0 😊
+😊  Evaluating HumanEval/89, postcondition 0 😊
+😊  Evaluating HumanEval/90, postcondition 0 😊
+😊  Evaluating HumanEval/91, postcondition 0 😊
+😊  Evaluating HumanEval/92, postcondition 0 😊
+😊  Evaluating HumanEval/95, postcondition 0 😊
+😊  Evaluating HumanEval/97, postcondition 0 😊
+😊  Evaluating HumanEval/98, postcondition 0 😊
+😊  Evaluating HumanEval/99, postcondition 0 😊
+😊  Evaluating HumanEval/49, postcondition 0 😊
+😊  Evaluating HumanEval/101, postcondition 0 😊
+😊  Evaluating HumanEval/102, postcondition 0 😊
+😊  Evaluating HumanEval/83, postcondition 0 😊
+😊  Evaluating HumanEval/103, postcondition 0 😊
+😊  Evaluating HumanEval/104, postcondition 0 😊
+😊  Evaluating HumanEval/106, postcondition 0 😊
+😊  Evaluating HumanEval/105, postcondition 0 😊
+😊  Evaluating HumanEval/100, postcondition 0 😊
+😊  Evaluating HumanEval/107, postcondition 0 😊
+😊  Evaluating HumanEval/110, postcondition 0 😊
+😊  Evaluating HumanEval/108, postcondition 0 😊
+😊  Evaluating HumanEval/109, postcondition 0 😊
+😊  Evaluating HumanEval/112, postcondition 0 😊
+😊  Evaluating HumanEval/111, postcondition 0 😊
+😊  Evaluating HumanEval/115, postcondition 0 😊
+😊  Evaluating HumanEval/114, postcondition 0 😊
+😊  Evaluating HumanEval/117, postcondition 0 😊
+😊  Evaluating HumanEval/96, postcondition 0 😊
+😊  Evaluating HumanEval/119, postcondition 0 😊
+😊  Evaluating HumanEval/118, postcondition 0 😊
+😊  Evaluating HumanEval/121, postcondition 0 😊
+😊  Evaluating HumanEval/116, postcondition 0 😊
+😊  Evaluating HumanEval/122, postcondition 0 😊
+😊  Evaluating HumanEval/124, postcondition 0 😊
+😊  Evaluating HumanEval/123, postcondition 0 😊
+😊  Evaluating HumanEval/126, postcondition 0 😊
+😊  Evaluating HumanEval/125, postcondition 0 😊
+😊  Evaluating HumanEval/128, postcondition 0 😊
+😊  Evaluating HumanEval/127, postcondition 0 😊
+😊  Evaluating HumanEval/129, postcondition 0 😊
+😊  Evaluating HumanEval/131, postcondition 0 😊
+😊  Evaluating HumanEval/134, postcondition 0 😊
+😊  Evaluating HumanEval/133, postcondition 0 😊
+😊  Evaluating HumanEval/135, postcondition 0 😊
+😊  Evaluating HumanEval/137, postcondition 0 😊
+😊  Evaluating HumanEval/136, postcondition 0 😊
+😊  Evaluating HumanEval/138, postcondition 0 😊
+😊  Evaluating HumanEval/140, postcondition 0 😊
+😊  Evaluating HumanEval/132, postcondition 0 😊
+😊  Evaluating HumanEval/142, postcondition 0 😊
+😊  Evaluating HumanEval/141, postcondition 0 😊
+😊  Evaluating HumanEval/143, postcondition 0 😊
+😊  Evaluating HumanEval/146, postcondition 0 😊
+😊  Evaluating HumanEval/144, postcondition 0 😊
+😊  Evaluating HumanEval/145, postcondition 0 😊
+😊  Evaluating HumanEval/148, postcondition 0 😊
+😊  Evaluating HumanEval/149, postcondition 0 😊
+😊  Evaluating HumanEval/150, postcondition 0 😊
+😊  Evaluating HumanEval/151, postcondition 0 😊
+😊  Evaluating HumanEval/152, postcondition 0 😊
+😊  Evaluating HumanEval/154, postcondition 0 😊
+😊  Evaluating HumanEval/155, postcondition 0 😊
+😊  Evaluating HumanEval/156, postcondition 0 😊
+😊  Evaluating HumanEval/157, postcondition 0 😊
+😊  Evaluating HumanEval/158, postcondition 0 😊
+😊  Evaluating HumanEval/159, postcondition 0 😊
+😊  Evaluating HumanEval/59, postcondition 0 😊
+😊  Evaluating HumanEval/139, postcondition 0 😊
+😊  Evaluating HumanEval/130, postcondition 0 😊
+😊  Evaluating HumanEval/163, postcondition 0 😊
+😊  Evaluating HumanEval/161, postcondition 0 😊
+😊  Evaluating HumanEval/162, postcondition 0 😊
+😊  Evaluating HumanEval/94, postcondition 0 😊
+😊  Evaluating HumanEval/160, postcondition 0 😊
+
+====================================================
+     🐈‍⬛  Finished Running Power Evaluation 🐈‍⬛
+====================================================
+
+😊  Saving power stats to ./response_preprocess_outputs/1_evalResults_evalplus/power_eval_stats.txt 😊
+😊  Saving results to ./response_preprocess_outputs/1_evalResults_evalplus/summary_eval_results.jsonl 😊
+
+====================================================
+        🐈‍⬛ Summary saved successfully! 🐈‍⬛
+====================================================
+
+🐈‍⬛  Done! 🐈‍⬛
