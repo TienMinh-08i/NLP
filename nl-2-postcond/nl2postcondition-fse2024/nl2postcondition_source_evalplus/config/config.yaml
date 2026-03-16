@@ -1,7 +1,7 @@
 defaults:
   - experiment: generateLLMSamples
   - api: gemini
-  - benchmarks: evalplus
+  - benchmarks: mydataset
 
 
 

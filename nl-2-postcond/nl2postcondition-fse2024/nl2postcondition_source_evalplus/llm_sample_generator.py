@@ -299,7 +299,7 @@ def main(cfg):
 
 if __name__ == "__main__":
     if 'hydra.mode=MULTIRUN' in sys.argv:
-        sys.argv.append('hydra.sweep.dir=multirun_llm_gen/2')
+        sys.argv.append('hydra.sweep.dir=multirun_llm_gen/3')
     else:
-        sys.argv.append('hydra.run.dir=llm_gen_outputs/2')
+        sys.argv.append('hydra.run.dir=llm_gen_outputs/3')
     main()

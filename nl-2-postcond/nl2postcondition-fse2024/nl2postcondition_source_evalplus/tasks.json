@@ -1,0 +1,2196 @@
+{
+  "MyDataset/0": {
+    "task_id": "MyDataset/0",
+    "prompt": "def register_series_accessor(name: str) -> Callable[[TypeT], TypeT]:\n    \"\"\"\n    Register a custom accessor on Series objects.\n\n    Use as a decorator to add a custom namespace accessor to Series,\n    allowing domain-specific methods to be called via ``ser.<name>``.\n\n    Parameters\n    ----------\n    name : str\n        Name under which the accessor should be registered. A warning is issued\n        if this name conflicts with a preexisting attribute.\n\n    Returns\n    -------\n    callable\n        A class decorator.\n\n    See Also\n    --------\n    register_dataframe_accessor : Register a custom accessor on DataFrame objects.\n    register_series_accessor : Register a custom accessor on Series objects.\n    register_index_accessor : Register a custom accessor on Index objects.\n\n    Notes\n    -----\n    This function allows you to register a custom-defined accessor class for Series.\n    The requirements for the accessor class are as follows:\n\n    * Must contain an init method that:\n\n      * accepts a single Series object\n\n      * raises an AttributeError if the Series object does not have correctly\n        matching inputs for the accessor\n\n    * Must contain a method for each access pattern.\n\n      * The methods should be able to take any argument signature.\n\n      * Accessible using the @property decorator if no additional arguments are\n        needed.\n\n    Examples\n    --------\n    An accessor that only accepts integers could\n    have a class defined like this:\n\n    >>> @pd.api.extensions.register_series_accessor(\"int_accessor\")\n    ... class IntAccessor:\n    ...     def __init__(self, pandas_obj):\n    ...         if not pandas_obj.dtype == \"int64\":\n    ...             raise AttributeError(\"The series must contain integer data only\")\n    ...         self._obj = pandas_obj\n    ...\n    ...     def sum(self):\n    ...         return self._obj.sum()\n    >>> df = pd.Series([1, 2, \"x\"])\n    >>> df.int_accessor\n    Traceback (most recent call last):\n    ...\n    AttributeError: The series must contain integer data only.\n    >>> df = pd.Series([1, 2, 3])\n    >>> df.int_accessor.sum()\n    6\n    \"\"\"\n",
+    "canonical_solution": "    from pandas import Series\n\n    return _register_accessor(name, Series)\n",
+    "entry_point": "register_series_accessor",
+    "base_input": [
+      [
+        "xyz"
+      ],
+      [
+        "bad"
+      ],
+      [
+        "mine"
+      ],
+      [
+        "fake"
+      ]
+    ],
+    "plus_input": [],
+    "atol": 0
+  },
+  "MyDataset/1": {
+    "task_id": "MyDataset/1",
+    "prompt": "def isin(comps: ListLike, values: ListLike) -> npt.NDArray[np.bool_]:\n    \"\"\"\n    Compute the isin boolean array.\n\n    Parameters\n    ----------\n    comps : list-like\n    values : list-like\n\n    Returns\n    -------\n    ndarray[bool]\n        Same length as `comps`.\n    \"\"\"\n",
+    "canonical_solution": "    if not is_list_like(comps):\n        raise TypeError(\n            \"only list-like objects are allowed to be passed \"\n            f\"to isin(), you passed a `{type(comps).__name__}`\"\n        )\n    if not is_list_like(values):\n        raise TypeError(\n            \"only list-like objects are allowed to be passed \"\n            f\"to isin(), you passed a `{type(values).__name__}`\"\n        )\n\n    if not isinstance(values, (ABCIndex, ABCSeries, ABCExtensionArray, np.ndarray)):\n        orig_values = list(values)\n        values = _ensure_arraylike(orig_values, func_name=\"isin-targets\")\n\n        if (\n            len(values) > 0\n            and values.dtype.kind in \"iufcb\"\n            and not is_signed_integer_dtype(comps)\n            and not is_dtype_equal(values, comps)\n        ):\n            # GH#46485 Use object to avoid upcast to float64 later\n            # TODO: Share with _find_common_type_compat\n            values = construct_1d_object_array_from_listlike(orig_values)\n\n    elif isinstance(values, ABCMultiIndex):\n        # Avoid raising in extract_array\n        values = np.array(values)\n    else:\n        values = extract_array(values, extract_numpy=True, extract_range=True)\n\n    comps_array = _ensure_arraylike(comps, func_name=\"isin\")\n    comps_array = extract_array(comps_array, extract_numpy=True)\n    if not isinstance(comps_array, np.ndarray):\n        # i.e. Extension Array\n        return comps_array.isin(values)\n\n    elif needs_i8_conversion(comps_array.dtype):\n        # Dispatch to DatetimeLikeArrayMixin.isin\n        return pd_array(comps_array).isin(values)\n    elif needs_i8_conversion(values.dtype) and not is_object_dtype(comps_array.dtype):\n        # e.g. comps_array are integers and values are datetime64s\n        return np.zeros(comps_array.shape, dtype=bool)\n        # TODO: not quite right ... Sparse/Categorical\n    elif needs_i8_conversion(values.dtype):\n        return isin(comps_array, values.astype(object))\n\n    elif isinstance(values.dtype, ExtensionDtype):\n        return isin(np.asarray(comps_array), np.asarray(values))\n\n    # GH16012\n    # Ensure np.isin doesn't get object types or it *may* throw an exception\n    # Albeit hashmap has O(1) look-up (vs. O(logn) in sorted array),\n    # isin is faster for small sizes\n\n    # GH60678\n    # Ensure values don't contain <NA>, otherwise it throws exception with np.in1d\n\n    if (\n        len(comps_array) > _MINIMUM_COMP_ARR_LEN\n        and len(values) <= 26\n        and comps_array.dtype != object\n        and not any(v is NA for v in values)\n    ):\n        # If the values include nan we need to check for nan explicitly\n        # since np.nan it not equal to np.nan\n        if isna(values).any():\n\n            def f(c, v):\n                return np.logical_or(np.isin(c, v).ravel(), np.isnan(c))\n\n        else:\n            f = lambda a, b: np.isin(a, b).ravel()\n\n    else:\n        common = np_find_common_type(values.dtype, comps_array.dtype)\n        values = values.astype(common, copy=False)\n        comps_array = comps_array.astype(common, copy=False)\n        f = htable.ismember\n\n    return f(comps_array, values)\n",
+    "entry_point": "isin",
+    "base_input": [
+      [
+        {
+          "__call__": "np.array",
+          "args": [
+            [
+              1,
+              2
+            ]
+          ],
+          "kwargs": {}
+        },
+        [
+          1
+        ]
+      ],
+      [
+        [
+          "1"
+        ]
+      ],
+      [
+        {
+          "__call__": "np.array",
+          "args": [
+            [
+              "NaN"
+            ]
+          ],
+          "kwargs": {
+            "dtype": {
+              "__expr__": "object"
+            }
+          }
+        }
+      ],
+      [
+        {
+          "__call__": "np.array",
+          "args": [
+            [
+              "1.4245"
+            ]
+          ],
+          "kwargs": {
+            "dtype": {
+              "__expr__": "object"
+            }
+          }
+        }
+      ],
+      [
+        [
+          1378774140726870528
+        ]
+      ],
+      [
+        1,
+        1
+      ],
+      [
+        1,
+        [
+          1
+        ]
+      ],
+      [
+        [
+          1
+        ],
+        1
+      ],
+      [
+        [
+          "a",
+          "c"
+        ]
+      ],
+      [
+        []
+      ]
+    ],
+    "plus_input": [
+      [
+        [
+          "red"
+        ]
+      ],
+      [
+        [
+          "eggs"
+        ]
+      ],
+      [
+        [
+          "a",
+          "b"
+        ]
+      ],
+      [
+        [
+          "a"
+        ]
+      ],
+      [
+        [
+          0,
+          2
+        ]
+      ]
+    ],
+    "atol": 0
+  },
+  "MyDataset/2": {
+    "task_id": "MyDataset/2",
+    "prompt": "def duplicated(\n    values: ArrayLike,\n    keep: Literal[\"first\", \"last\", False] = \"first\",\n    mask: npt.NDArray[np.bool_] | None = None,\n) -> npt.NDArray[np.bool_]:\n    \"\"\"\n    Return boolean ndarray denoting duplicate values.\n\n    Parameters\n    ----------\n    values : np.ndarray or ExtensionArray\n        Array over which to check for duplicate values.\n    keep : {'first', 'last', False}, default 'first'\n        - ``first`` : Mark duplicates as ``True`` except for the first\n          occurrence.\n        - ``last`` : Mark duplicates as ``True`` except for the last\n          occurrence.\n        - False : Mark all duplicates as ``True``.\n    mask : ndarray[bool], optional\n        array indicating which elements to exclude from checking\n\n    Returns\n    -------\n    duplicated : ndarray[bool]\n    \"\"\"\n",
+    "canonical_solution": "    values = _ensure_data(values)\n    return htable.duplicated(values, keep=keep, mask=mask)\n",
+    "entry_point": "duplicated",
+    "base_input": [
+      [],
+      [
+        "a"
+      ],
+      [
+        [
+          "date",
+          "symbol"
+        ]
+      ]
+    ],
+    "plus_input": [],
+    "atol": 0
+  },
+  "MyDataset/3": {
+    "task_id": "MyDataset/3",
+    "prompt": "def searchsorted(\n    arr: ArrayLike,\n    value: NumpyValueArrayLike | ExtensionArray,\n    side: Literal[\"left\", \"right\"] = \"left\",\n    sorter: NumpySorter | None = None,\n) -> npt.NDArray[np.intp] | np.intp:\n    \"\"\"\n    Find indices where elements should be inserted to maintain order.\n\n    Find the indices into a sorted array `arr` (a) such that, if the\n    corresponding elements in `value` were inserted before the indices,\n    the order of `arr` would be preserved.\n\n    Assuming that `arr` is sorted:\n\n    ======  ================================\n    `side`  returned index `i` satisfies\n    ======  ================================\n    left    ``arr[i-1] < value <= self[i]``\n    right   ``arr[i-1] <= value < self[i]``\n    ======  ================================\n\n    Parameters\n    ----------\n    arr: np.ndarray, ExtensionArray, Series\n        Input array. If `sorter` is None, then it must be sorted in\n        ascending order, otherwise `sorter` must be an array of indices\n        that sort it.\n    value : array-like or scalar\n        Values to insert into `arr`.\n    side : {'left', 'right'}, optional\n        If 'left', the index of the first suitable location found is given.\n        If 'right', return the last such index.  If there is no suitable\n        index, return either 0 or N (where N is the length of `self`).\n    sorter : 1-D array-like, optional\n        Optional array of integer indices that sort array a into ascending\n        order. They are typically the result of argsort.\n\n    Returns\n    -------\n    array of ints or int\n        If value is array-like, array of insertion points.\n        If value is scalar, a single integer.\n\n    See Also\n    --------\n    numpy.searchsorted : Similar method from NumPy.\n    \"\"\"\n",
+    "canonical_solution": "    if sorter is not None:\n        sorter = ensure_platform_int(sorter)\n\n    if (\n        isinstance(arr, np.ndarray)\n        and arr.dtype.kind in \"iu\"\n        and (is_integer(value) or is_integer_dtype(value))\n    ):\n        # if `arr` and `value` have different dtypes, `arr` would be\n        # recast by numpy, causing a slow search.\n        # Before searching below, we therefore try to give `value` the\n        # same dtype as `arr`, while guarding against integer overflows.\n        iinfo = np.iinfo(arr.dtype.type)\n        value_arr = np.array([value]) if is_integer(value) else np.array(value)\n        if (value_arr >= iinfo.min).all() and (value_arr <= iinfo.max).all():\n            # value within bounds, so no overflow, so can convert value dtype\n            # to dtype of arr\n            dtype = arr.dtype\n        else:\n            dtype = value_arr.dtype\n\n        if is_integer(value):\n            # We know that value is int\n            value = cast(\"int\", dtype.type(value))\n        else:\n            value = pd_array(cast(\"ArrayLike\", value), dtype=dtype)\n    else:\n        # E.g. if `arr` is an array with dtype='datetime64[ns]'\n        # and `value` is a pd.Timestamp, we may need to convert value\n        arr = ensure_wrapped_if_datetimelike(arr)\n\n    # Argument 1 to \"searchsorted\" of \"ndarray\" has incompatible type\n    # \"Union[NumpyValueArrayLike, ExtensionArray]\"; expected \"NumpyValueArrayLike\"\n    return arr.searchsorted(value, side=side, sorter=sorter)  # type: ignore[arg-type]\n",
+    "entry_point": "searchsorted",
+    "base_input": [
+      [
+        "foo"
+      ],
+      [
+        "apple"
+      ],
+      [
+        [
+          "bread"
+        ]
+      ],
+      [
+        "cucumber"
+      ],
+      [
+        [
+          "bread",
+          "cucumber"
+        ]
+      ],
+      [
+        30
+      ],
+      [
+        [
+          30
+        ]
+      ],
+      [
+        [
+          2,
+          30
+        ]
+      ],
+      [
+        {
+          "__call__": "np.timedelta64",
+          "args": [
+            4
+          ],
+          "kwargs": {}
+        }
+      ],
+      [
+        {
+          "__call__": "np.timedelta64",
+          "args": [
+            "NaT",
+            "ms"
+          ],
+          "kwargs": {}
+        }
+      ]
+    ],
+    "plus_input": [
+      [
+        {
+          "__call__": "np.datetime64",
+          "args": [
+            4,
+            "ns"
+          ],
+          "kwargs": {}
+        }
+      ],
+      [
+        {
+          "__call__": "np.datetime64",
+          "args": [
+            "NaT",
+            "ns"
+          ],
+          "kwargs": {}
+        }
+      ],
+      [
+        [
+          91,
+          2000000.0
+        ]
+      ]
+    ],
+    "atol": 0
+  },
+  "MyDataset/4": {
+    "task_id": "MyDataset/4",
+    "prompt": "def diff(arr, n: int | float | np.integer | np.floating, axis: AxisInt = 0):\n    \"\"\"\n    difference of n between self,\n    analogous to s-s.shift(n)\n\n    Parameters\n    ----------\n    arr : ndarray or ExtensionArray\n    n : int\n        number of periods\n    axis : {0, 1}\n        axis to shift on\n    stacklevel : int, default 3\n        The stacklevel for the lost dtype warning.\n\n    Returns\n    -------\n    shifted\n    \"\"\"\n",
+    "canonical_solution": "    if not lib.is_integer(n):\n        if not (is_float(n) and n.is_integer()):\n            raise ValueError(\"periods must be an integer\")\n        n = int(n)\n    na = np.nan\n    dtype = arr.dtype\n\n    is_bool = is_bool_dtype(dtype)\n    if is_bool:\n        op = operator.xor\n    else:\n        op = operator.sub\n\n    if isinstance(dtype, NumpyEADtype):\n        # NumpyExtensionArray cannot necessarily hold shifted versions of itself.\n        arr = arr.to_numpy()\n        dtype = arr.dtype\n\n    if not isinstance(arr, np.ndarray):\n        # i.e ExtensionArray\n        if hasattr(arr, f\"__{op.__name__}__\"):\n            if axis >= arr.ndim:\n                raise ValueError(f\"cannot diff {type(arr).__name__} on axis={axis}\")\n            return op(arr, arr.shift(n))\n        else:\n            raise TypeError(\n                f\"{type(arr).__name__} has no 'diff' method. \"\n                \"Convert to a suitable dtype prior to calling 'diff'.\"\n            )\n\n    is_timedelta = False\n    if arr.dtype.kind in \"mM\":\n        dtype = np.int64\n        arr = arr.view(\"i8\")\n        na = iNaT\n        is_timedelta = True\n\n    elif is_bool:\n        # We have to cast in order to be able to hold np.nan\n        dtype = np.object_\n\n    elif dtype.kind in \"iu\":\n        # We have to cast in order to be able to hold np.nan\n\n        # int8, int16 are incompatible with float64,\n        # see https://github.com/cython/cython/issues/2646\n        if arr.dtype.name in [\"int8\", \"int16\"]:\n            dtype = np.float32\n        else:\n            dtype = np.float64\n\n    orig_ndim = arr.ndim\n    if orig_ndim == 1:\n        # reshape so we can always use algos.diff_2d\n        arr = arr.reshape(-1, 1)\n        # TODO: require axis == 0\n\n    dtype = np.dtype(dtype)\n    out_arr = np.empty(arr.shape, dtype=dtype)\n\n    na_indexer = [slice(None)] * 2\n    na_indexer[axis] = slice(None, n) if n >= 0 else slice(n, None)\n    out_arr[tuple(na_indexer)] = na\n\n    if arr.dtype.name in _diff_special:\n        # TODO: can diff_2d dtype specialization troubles be fixed by defining\n        #  out_arr inside diff_2d?\n        algos.diff_2d(arr, out_arr, int(n), axis, datetimelike=is_timedelta)\n    else:\n        # To keep mypy happy, _res_indexer is a list while res_indexer is\n        #  a tuple, ditto for lag_indexer.\n        _res_indexer = [slice(None)] * 2\n        _res_indexer[axis] = slice(n, None) if n >= 0 else slice(None, n)\n        res_indexer = tuple(_res_indexer)\n\n        _lag_indexer = [slice(None)] * 2\n        _lag_indexer[axis] = slice(None, -n) if n > 0 else slice(-n, None)\n        lag_indexer = tuple(_lag_indexer)\n\n        out_arr[res_indexer] = op(arr[res_indexer], arr[lag_indexer])\n\n    if is_timedelta:\n        out_arr = out_arr.view(\"timedelta64[ns]\")\n\n    if orig_ndim == 1:\n        out_arr = out_arr[:, 0]\n    return out_arr\n",
+    "entry_point": "diff",
+    "base_input": [
+      [],
+      [
+        1
+      ],
+      [
+        0
+      ],
+      [
+        -1
+      ],
+      [
+        1.0
+      ],
+      [
+        1.5
+      ]
+    ],
+    "plus_input": [],
+    "atol": 0
+  },
+  "MyDataset/5": {
+    "task_id": "MyDataset/5",
+    "prompt": "def contains(cat, key, container) -> bool:\n    \"\"\"\n    Helper for membership check for ``key`` in ``cat``.\n\n    This is a helper method for :meth:`__contains__`\n    and :class:`CategoricalIndex.__contains__`.\n\n    Returns True if ``key`` is in ``cat.categories`` and the\n    location of ``key`` in ``categories`` is in ``container``.\n\n    Parameters\n    ----------\n    cat : :class:`Categorical`or :class:`CategoricalIndex`\n    key : a hashable object\n        The key to check membership for.\n    container : Container (e.g. list-like or mapping)\n        The container to check for membership in.\n\n    Returns\n    -------\n    is_in : bool\n        True if ``key`` is in ``self.categories`` and location of\n        ``key`` in ``categories`` is in ``container``, else False.\n\n    Notes\n    -----\n    This method does not check for NaN values. Do that separately\n    before calling this method.\n    \"\"\"\n",
+    "canonical_solution": "    hash(key)\n\n    # get location of key in categories.\n    # If a KeyError, the key isn't in categories, so logically\n    #  can't be in container either.\n    try:\n        loc = cat.categories.get_loc(key)\n    except (KeyError, TypeError):\n        return False\n\n    # loc is the location of key in categories, but also the *value*\n    # for key in container. So, `key` may be in categories,\n    # but still not in `container`. Example ('b' in categories,\n    # but not in values):\n    # 'b' in Categorical(['a'], categories=['a', 'b'])  # False\n    if is_scalar(loc):\n        return loc in container\n    else:\n        # if categories is an IntervalIndex, loc is an array.\n        return any(loc_ in container for loc_ in loc)\n",
+    "entry_point": "contains",
+    "base_input": [
+      [
+        "[\\x{0e00}-\\x{0e7f}]"
+      ],
+      [
+        1
+      ],
+      [
+        0
+      ],
+      [
+        3
+      ],
+      [
+        0.5
+      ],
+      [
+        "o"
+      ],
+      [
+        "a"
+      ],
+      [
+        "Aa"
+      ],
+      [
+        "ba"
+      ],
+      [
+        "foo"
+      ]
+    ],
+    "plus_input": [
+      [
+        "bar$"
+      ],
+      [
+        "bar\\Z"
+      ],
+      [
+        "bar\\\\Z"
+      ],
+      [
+        "bar\\\\\\Z"
+      ],
+      [
+        "bar\\\\\\\\Z"
+      ]
+    ],
+    "atol": 0
+  },
+  "MyDataset/6": {
+    "task_id": "MyDataset/6",
+    "prompt": "def col(col_name: Hashable) -> Expression:\n    \"\"\"\n    Generate deferred object representing a column of a DataFrame.\n\n    Any place which accepts ``lambda df: df[col_name]``, such as\n    :meth:`DataFrame.assign` or :meth:`DataFrame.loc`, can also accept\n    ``pd.col(col_name)``.\n\n    .. versionadded:: 3.0.0\n\n    Parameters\n    ----------\n    col_name : Hashable\n        Column name.\n\n    Returns\n    -------\n    `pandas.api.typing.Expression`\n        A deferred object representing a column of a DataFrame.\n\n    See Also\n    --------\n    DataFrame.query : Query columns of a dataframe using string expressions.\n\n    Examples\n    --------\n\n    You can use `col` in `assign`.\n\n    >>> df = pd.DataFrame({\"name\": [\"beluga\", \"narwhal\"], \"speed\": [100, 110]})\n    >>> df.assign(name_titlecase=pd.col(\"name\").str.title())\n          name  speed name_titlecase\n    0   beluga    100         Beluga\n    1  narwhal    110        Narwhal\n\n    You can also use it for filtering.\n\n    >>> df.loc[pd.col(\"speed\") > 105]\n          name  speed\n    1  narwhal    110\n    \"\"\"\n",
+    "canonical_solution": "    if not isinstance(col_name, Hashable):\n        msg = f\"Expected Hashable, got: {type(col_name)}\"\n        raise TypeError(msg)\n\n    def func(df: DataFrame) -> Series:\n        if col_name not in df.columns:\n            columns_str = str(df.columns.tolist())\n            max_len = 90\n            if len(columns_str) > max_len:\n                columns_str = columns_str[:max_len] + \"...]\"\n\n            msg = (\n                f\"Column '{col_name}' not found in given DataFrame.\\n\\n\"\n                f\"Hint: did you mean one of {columns_str} instead?\"\n            )\n            raise ValueError(msg)\n        return df[col_name]\n\n    return Expression(func, f\"col({col_name!r})\")\n",
+    "entry_point": "col",
+    "base_input": [
+      [
+        "a"
+      ],
+      [
+        "b"
+      ],
+      [
+        "c"
+      ],
+      [
+        "f",
+        "index"
+      ],
+      [
+        "f",
+        "string"
+      ],
+      [
+        "f",
+        "string2"
+      ],
+      [
+        "f2",
+        "index"
+      ],
+      [
+        "f2",
+        "string"
+      ],
+      [
+        "f2",
+        "string2"
+      ]
+    ],
+    "plus_input": [],
+    "atol": 0
+  },
+  "MyDataset/7": {
+    "task_id": "MyDataset/7",
+    "prompt": "def where(cond, left_op, right_op, use_numexpr: bool = True):\n    \"\"\"\n    Evaluate the where condition cond on left_op and right_op.\n\n    Parameters\n    ----------\n    cond : np.ndarray[bool]\n    left_op : return if cond is True\n    right_op : return if cond is False\n    use_numexpr : bool, default True\n        Whether to try to use numexpr.\n    \"\"\"\n",
+    "canonical_solution": "    assert _where is not None\n    if use_numexpr:\n        return _where(cond, left_op, right_op)\n    else:\n        return _where_standard(cond, left_op, right_op)\n",
+    "entry_point": "where",
+    "base_input": [
+      [
+        [
+          true,
+          false
+        ]
+      ],
+      [
+        [
+          false,
+          false
+        ]
+      ],
+      [
+        [
+          true,
+          false,
+          true
+        ],
+        "d"
+      ],
+      [
+        true
+      ],
+      [
+        []
+      ],
+      [
+        1
+      ],
+      [
+        [
+          true
+        ]
+      ]
+    ],
+    "plus_input": [],
+    "atol": 0
+  },
+  "MyDataset/8": {
+    "task_id": "MyDataset/8",
+    "prompt": "def array(\n    data: Sequence[object] | AnyArrayLike,\n    dtype: Dtype | None = None,\n    copy: bool = True,\n) -> ExtensionArray:\n    \"\"\"\n    Create an array.\n\n    This method constructs an array using pandas extension types when possible.\n    If `dtype` is specified, it determines the type of array returned. Otherwise,\n    pandas attempts to infer the appropriate dtype based on `data`.\n\n    Parameters\n    ----------\n    data : Sequence of objects\n        The scalars inside `data` should be instances of the\n        scalar type for `dtype`. It's expected that `data`\n        represents a 1-dimensional array of data.\n\n        When `data` is an Index or Series, the underlying array\n        will be extracted from `data`.\n\n    dtype : str, np.dtype, or ExtensionDtype, optional\n        The dtype to use for the array. This may be a NumPy\n        dtype or an extension type registered with pandas using\n        :meth:`pandas.api.extensions.register_extension_dtype`.\n\n        If not specified, there are two possibilities:\n\n        1. When `data` is a :class:`Series`, :class:`Index`, or\n           :class:`ExtensionArray`, the `dtype` will be taken\n           from the data.\n        2. Otherwise, pandas will attempt to infer the `dtype`\n           from the data.\n\n        Note that when `data` is a NumPy array, ``data.dtype`` is\n        *not* used for inferring the array type. This is because\n        NumPy cannot represent all the types of data that can be\n        held in extension arrays.\n\n        Currently, pandas will infer an extension dtype for sequences of\n\n        ============================== =======================================\n        Scalar Type                    Array Type\n        ============================== =======================================\n        :class:`pandas.Interval`       :class:`pandas.arrays.IntervalArray`\n        :class:`pandas.Period`         :class:`pandas.arrays.PeriodArray`\n        :class:`datetime.datetime`     :class:`pandas.arrays.DatetimeArray`\n        :class:`datetime.timedelta`    :class:`pandas.arrays.TimedeltaArray`\n        :class:`int`                   :class:`pandas.arrays.IntegerArray`\n        :class:`float`                 :class:`pandas.arrays.FloatingArray`\n        :class:`str`                   :class:`pandas.arrays.StringArray` or\n                                       :class:`pandas.arrays.ArrowStringArray`\n        :class:`bool`                  :class:`pandas.arrays.BooleanArray`\n        ============================== =======================================\n\n        The ExtensionArray created when the scalar type is :class:`str` is determined by\n        ``pd.options.mode.string_storage`` if the dtype is not explicitly given.\n\n        For all other cases, NumPy's usual inference rules will be used.\n    copy : bool, default True\n        Whether to copy the data, even if not necessary. Depending\n        on the type of `data`, creating the new array may require\n        copying data, even if ``copy=False``.\n\n    Returns\n    -------\n    ExtensionArray\n        The newly created array.\n\n    Raises\n    ------\n    ValueError\n        When `data` is not 1-dimensional.\n\n    See Also\n    --------\n    numpy.array : Construct a NumPy array.\n    Series : Construct a pandas Series.\n    Index : Construct a pandas Index.\n    arrays.NumpyExtensionArray : ExtensionArray wrapping a NumPy array.\n    Series.array : Extract the array stored within a Series.\n\n    Notes\n    -----\n    Omitting the `dtype` argument means pandas will attempt to infer the\n    best array type from the values in the data. As new array types are\n    added by pandas and 3rd party libraries, the \"best\" array type may\n    change. We recommend specifying `dtype` to ensure that\n\n    1. the correct array type for the data is returned\n    2. the returned array type doesn't change as new extension types\n       are added by pandas and third-party libraries\n\n    Additionally, if the underlying memory representation of the returned\n    array matters, we recommend specifying the `dtype` as a concrete object\n    rather than a string alias or allowing it to be inferred. For example,\n    a future version of pandas or a 3rd-party library may include a\n    dedicated ExtensionArray for string data. In this event, the following\n    would no longer return a :class:`arrays.NumpyExtensionArray` backed by a\n    NumPy array.\n\n    >>> pd.array([\"a\", \"b\"], dtype=str)\n    <ArrowStringArray>\n    ['a', 'b']\n    Length: 2, dtype: str\n\n    This would instead return the new ExtensionArray dedicated for string\n    data. If you really need the new array to be backed by a  NumPy array,\n    specify that in the dtype.\n\n    >>> pd.array([\"a\", \"b\"], dtype=np.dtype(\"<U1\"))\n    <NumpyExtensionArray>\n    ['a', 'b']\n    Length: 2, dtype: str32\n\n    pandas converts entries of a multidimensional sequence (excluding NumPy arrays)\n    to its string representation if the ``dtype`` is a string data type.\n\n    >>> pd.array([[1], [2], [3]], dtype=\"str\")\n    <ArrowStringArray>\n    ['[1]', '[2]', '[3]']\n    Length: 3, dtype: str\n\n    Finally, Pandas has arrays that mostly overlap with NumPy\n\n      * :class:`arrays.DatetimeArray`\n      * :class:`arrays.TimedeltaArray`\n\n    When data with a ``datetime64[ns]`` or ``timedelta64[ns]`` dtype is\n    passed, pandas will always return a ``DatetimeArray`` or ``TimedeltaArray``\n    rather than a ``NumpyExtensionArray``. This is for symmetry with the case of\n    timezone-aware data, which NumPy does not natively support.\n\n    >>> pd.array([\"2015\", \"2016\"], dtype=\"datetime64[ns]\")\n    <DatetimeArray>\n    ['2015-01-01 00:00:00', '2016-01-01 00:00:00']\n    Length: 2, dtype: datetime64[ns]\n\n    >>> pd.array([\"1h\", \"2h\"], dtype=\"timedelta64[ns]\")\n    <TimedeltaArray>\n    ['0 days 01:00:00', '0 days 02:00:00']\n    Length: 2, dtype: timedelta64[ns]\n\n    Examples\n    --------\n    If a dtype is not specified, pandas will infer the best dtype from the values.\n    See the description of `dtype` for the types pandas infers for.\n\n    >>> pd.array([1, 2])\n    <IntegerArray>\n    [1, 2]\n    Length: 2, dtype: Int64\n\n    >>> pd.array([1, 2, np.nan])\n    <IntegerArray>\n    [1, 2, <NA>]\n    Length: 3, dtype: Int64\n\n    >>> pd.array([1.1, 2.2])\n    <FloatingArray>\n    [1.1, 2.2]\n    Length: 2, dtype: Float64\n\n    >>> pd.array([\"a\", None, \"c\"])\n    <ArrowStringArray>\n    ['a', <NA>, 'c']\n    Length: 3, dtype: string\n\n    >>> with pd.option_context(\"string_storage\", \"python\"):\n    ...     arr = pd.array([\"a\", None, \"c\"])\n    >>> arr\n    <StringArray>\n    ['a', <NA>, 'c']\n    Length: 3, dtype: string\n\n    >>> pd.array([pd.Period(\"2000\", freq=\"D\"), pd.Period(\"2000\", freq=\"D\")])\n    <PeriodArray>\n    ['2000-01-01', '2000-01-01']\n    Length: 2, dtype: period[D]\n\n    You can use the string alias for `dtype`\n\n    >>> pd.array([\"a\", \"b\", \"a\"], dtype=\"category\")\n    ['a', 'b', 'a']\n    Categories (2, str): ['a', 'b']\n\n    Or specify the actual dtype\n\n    >>> pd.array(\n    ...     [\"a\", \"b\", \"a\"], dtype=pd.CategoricalDtype([\"a\", \"b\", \"c\"], ordered=True)\n    ... )\n    ['a', 'b', 'a']\n    Categories (3, str): ['a' < 'b' < 'c']\n\n    If pandas does not infer a dedicated extension type a\n    :class:`arrays.NumpyExtensionArray` is returned.\n\n    >>> pd.array([1 + 1j, 3 + 2j])\n    <NumpyExtensionArray>\n    [(1+1j), (3+2j)]\n    Length: 2, dtype: complex128\n\n    As mentioned in the \"Notes\" section, new extension types may be added\n    in the future (by pandas or 3rd party libraries), causing the return\n    value to no longer be a :class:`arrays.NumpyExtensionArray`. Specify the\n    `dtype` as a NumPy dtype if you need to ensure there's no future change in\n    behavior.\n\n    >>> pd.array([1, 2], dtype=np.dtype(\"int32\"))\n    <NumpyExtensionArray>\n    [1, 2]\n    Length: 2, dtype: int32\n\n    `data` must be 1-dimensional. A ValueError is raised when the input\n    has the wrong dimensionality.\n\n    >>> pd.array(1)\n    Traceback (most recent call last):\n      ...\n    ValueError: Cannot pass scalar '1' to 'pandas.array'.\n    \"\"\"\n",
+    "canonical_solution": "    from pandas.core.arrays import (\n        BooleanArray,\n        DatetimeArray,\n        ExtensionArray,\n        FloatingArray,\n        IntegerArray,\n        NumpyExtensionArray,\n        TimedeltaArray,\n    )\n    from pandas.core.arrays.string_ import StringDtype\n\n    if lib.is_scalar(data):\n        msg = f\"Cannot pass scalar '{data}' to 'pandas.array'.\"\n        raise ValueError(msg)\n    elif isinstance(data, ABCDataFrame):\n        raise TypeError(\"Cannot pass DataFrame to 'pandas.array'\")\n\n    if dtype is None and isinstance(data, (ABCSeries, ABCIndex, ExtensionArray)):\n        # Note: we exclude np.ndarray here, will do type inference on it\n        dtype = data.dtype\n\n    data = extract_array(data, extract_numpy=True)\n\n    # Handle numpy masked arrays: convert masked values to NA\n    # GH#63879\n    if isinstance(data, ma.MaskedArray):\n        if data.dtype.names is not None:\n            raise ValueError(\n                \"Cannot construct an array from an ndarray with compound dtype. \"\n                \"Use DataFrame instead.\"\n            )\n        elif data.mask is not np.False_ and ma.getmaskarray(data).any():\n            na_dtype = ensure_dtype_can_hold_na(data.dtype)\n            if na_dtype.char in \"SU\":\n                na_dtype = np.dtype(\"object\")\n            data = cast(\"ma.MaskedArray\", data.astype(na_dtype)).filled(np.nan)\n        else:\n            # No mask, convert to regular array\n            data = np.asarray(data)\n\n    # this returns None for not-found dtypes.\n    if dtype is not None:\n        dtype = pandas_dtype(dtype)\n\n    if isinstance(data, ExtensionArray) and (dtype is None or data.dtype == dtype):\n        # e.g. TimedeltaArray[s], avoid casting to NumpyExtensionArray\n        if copy:\n            return data.copy()\n        return data\n\n    if isinstance(dtype, ExtensionDtype):\n        cls = dtype.construct_array_type()\n        return cls._from_sequence(data, dtype=dtype, copy=copy)\n\n    if dtype is None:\n        was_ndarray = isinstance(data, np.ndarray)\n        # error: Item \"Sequence[object]\" of \"Sequence[object] | ExtensionArray |\n        # ndarray[Any, Any]\" has no attribute \"dtype\"\n        if not was_ndarray or data.dtype == object:  # type: ignore[union-attr]\n            result = lib.maybe_convert_objects(\n                ensure_object(data),\n                convert_non_numeric=True,\n                convert_to_nullable_dtype=True,\n                dtype_if_all_nat=np.dtype(\"M8[s]\"),\n            )\n            result = ensure_wrapped_if_datetimelike(result)\n            if isinstance(result, np.ndarray):\n                if len(result) == 0 and not was_ndarray:\n                    # e.g. empty list\n                    return FloatingArray._from_sequence(data, dtype=\"Float64\")\n                return NumpyExtensionArray._from_sequence(\n                    data, dtype=result.dtype, copy=copy\n                )\n            if result is data and copy:\n                return result.copy()\n            return result\n\n        data = cast(\"np.ndarray\", data)\n        result = ensure_wrapped_if_datetimelike(data)\n        if result is not data:\n            result = cast(\"DatetimeArray | TimedeltaArray\", result)\n            if copy and result.dtype == data.dtype:\n                return result.copy()\n            return result\n\n        if data.dtype.kind in \"SU\":\n            # StringArray/ArrowStringArray depending on pd.options.mode.string_storage\n            dtype = StringDtype()\n            cls = dtype.construct_array_type()\n            return cls._from_sequence(data, dtype=dtype, copy=copy)\n\n        elif data.dtype.kind in \"iu\":\n            dtype = IntegerArray._dtype_cls._get_dtype_mapping()[data.dtype]\n            return IntegerArray._from_sequence(data, dtype=dtype, copy=copy)\n        elif data.dtype.kind == \"f\":\n            # GH#44715 Exclude np.float16 bc FloatingArray does not support it;\n            #  we will fall back to NumpyExtensionArray.\n            if data.dtype == np.float16:\n                return NumpyExtensionArray._from_sequence(\n                    data, dtype=data.dtype, copy=copy\n                )\n            dtype = FloatingArray._dtype_cls._get_dtype_mapping()[data.dtype]\n            return FloatingArray._from_sequence(data, dtype=dtype, copy=copy)\n\n        elif data.dtype.kind == \"b\":\n            return BooleanArray._from_sequence(data, dtype=\"boolean\", copy=copy)\n        else:\n            # e.g. complex\n            return NumpyExtensionArray._from_sequence(data, dtype=data.dtype, copy=copy)\n\n    # Pandas overrides NumPy for\n    #   1. datetime64[ns,us,ms,s]\n    #   2. timedelta64[ns,us,ms,s]\n    # so that a DatetimeArray is returned.\n    if lib.is_np_dtype(dtype, \"M\") and is_supported_dtype(dtype):\n        return DatetimeArray._from_sequence(data, dtype=dtype, copy=copy)\n    if lib.is_np_dtype(dtype, \"m\") and is_supported_dtype(dtype):\n        return TimedeltaArray._from_sequence(data, dtype=dtype, copy=copy)\n\n    elif lib.is_np_dtype(dtype, \"mM\"):\n        raise ValueError(\n            # GH#53817\n            r\"datetime64 and timedelta64 dtype resolutions other than \"\n            r\"'s', 'ms', 'us', and 'ns' are no longer supported.\"\n        )\n\n    return NumpyExtensionArray._from_sequence(data, dtype=dtype, copy=copy)\n",
+    "entry_point": "array",
+    "base_input": [
+      [
+        [
+          false,
+          false,
+          false,
+          false,
+          false,
+          true
+        ]
+      ],
+      [
+        [
+          -0.0,
+          0.0
+        ]
+      ],
+      [
+        [
+          -0.0
+        ]
+      ],
+      [
+        [
+          true,
+          false
+        ]
+      ],
+      [
+        [
+          false,
+          false
+        ]
+      ],
+      [
+        [
+          true,
+          false,
+          false
+        ]
+      ],
+      [
+        [
+          true,
+          true,
+          false
+        ]
+      ],
+      [
+        [
+          0,
+          1,
+          2,
+          0
+        ]
+      ],
+      [
+        [
+          true,
+          true,
+          false,
+          true
+        ]
+      ],
+      [
+        [
+          true
+        ]
+      ]
+    ],
+    "plus_input": [
+      [
+        [
+          false,
+          false,
+          true
+        ]
+      ],
+      [
+        [
+          true,
+          true
+        ]
+      ],
+      [
+        [
+          false,
+          false,
+          false,
+          true,
+          false,
+          true
+        ]
+      ],
+      [
+        [
+          true,
+          false,
+          true,
+          false,
+          false,
+          false
+        ]
+      ],
+      [
+        [
+          true,
+          false,
+          true,
+          true,
+          false,
+          true
+        ]
+      ]
+    ],
+    "atol": 0
+  },
+  "MyDataset/9": {
+    "task_id": "MyDataset/9",
+    "prompt": "def is_object_dtype(arr_or_dtype) -> bool:\n    \"\"\"\n    Check whether an array-like or dtype is of the object dtype.\n\n    This method examines the input to determine if it is of the\n    object data type. Object dtype is a generic data type that can\n    hold any Python objects, including strings, lists, and custom\n    objects.\n\n    Parameters\n    ----------\n    arr_or_dtype : array-like or dtype\n        The array-like or dtype to check.\n\n    Returns\n    -------\n    boolean\n        Whether or not the array-like or dtype is of the object dtype.\n\n    See Also\n    --------\n    api.types.is_numeric_dtype : Check whether the provided array or dtype is of a\n        numeric dtype.\n    api.types.is_string_dtype : Check whether the provided array or dtype is of\n        the string dtype.\n    api.types.is_bool_dtype : Check whether the provided array or dtype is of a\n        boolean dtype.\n\n    Examples\n    --------\n    >>> from pandas.api.types import is_object_dtype\n    >>> is_object_dtype(object)\n    True\n    >>> is_object_dtype(int)\n    False\n    >>> is_object_dtype(np.array([], dtype=object))\n    True\n    >>> is_object_dtype(np.array([], dtype=int))\n    False\n    >>> is_object_dtype([1, 2, 3])\n    False\n    \"\"\"\n",
+    "canonical_solution": "    return _is_dtype_type(arr_or_dtype, classes(np.object_))\n",
+    "entry_point": "is_object_dtype",
+    "base_input": [
+      [
+        {
+          "__expr__": "object"
+        }
+      ],
+      [
+        {
+          "__call__": "np.array",
+          "args": [
+            []
+          ],
+          "kwargs": {
+            "dtype": {
+              "__expr__": "object"
+            }
+          }
+        }
+      ],
+      [
+        {
+          "__expr__": "int"
+        }
+      ],
+      [
+        {
+          "__call__": "np.array",
+          "args": [
+            []
+          ],
+          "kwargs": {
+            "dtype": {
+              "__expr__": "int"
+            }
+          }
+        }
+      ],
+      [
+        [
+          1,
+          2,
+          3
+        ]
+      ]
+    ],
+    "plus_input": [],
+    "atol": 0
+  },
+  "MyDataset/10": {
+    "task_id": "MyDataset/10",
+    "prompt": "def is_datetime64_dtype(arr_or_dtype) -> bool:\n    \"\"\"\n    Check whether an array-like or dtype is of the datetime64 dtype.\n\n    This function checks for the base ``datetime64`` dtype without regard\n    to timezone information. For timezone-aware checks, use\n    :func:`api.types.is_datetime64_any_dtype` instead.\n\n    Parameters\n    ----------\n    arr_or_dtype : array-like or dtype\n        The array-like or dtype to check.\n\n    Returns\n    -------\n    boolean\n        Whether or not the array-like or dtype is of the datetime64 dtype.\n\n    See Also\n    --------\n    api.types.is_datetime64_ns_dtype: Check whether the provided array or\n                                        dtype is of the datetime64[ns] dtype.\n    api.types.is_datetime64_any_dtype: Check whether the provided array or\n                                        dtype is of the datetime64 dtype.\n\n    Examples\n    --------\n    >>> from pandas.api.types import is_datetime64_dtype\n    >>> is_datetime64_dtype(object)\n    False\n    >>> is_datetime64_dtype(np.datetime64)\n    True\n    >>> is_datetime64_dtype(np.array([], dtype=int))\n    False\n    >>> is_datetime64_dtype(np.array([], dtype=np.datetime64))\n    True\n    >>> is_datetime64_dtype([1, 2, 3])\n    False\n    \"\"\"\n",
+    "canonical_solution": "    if isinstance(arr_or_dtype, np.dtype):\n        # GH#33400 fastpath for dtype object\n        return arr_or_dtype.kind == \"M\"\n    return _is_dtype_type(arr_or_dtype, classes(np.datetime64))\n",
+    "entry_point": "is_datetime64_dtype",
+    "base_input": [
+      [
+        {
+          "__expr__": "np.datetime64"
+        }
+      ],
+      [
+        {
+          "__call__": "np.array",
+          "args": [
+            []
+          ],
+          "kwargs": {
+            "dtype": {
+              "__expr__": "np.datetime64"
+            }
+          }
+        }
+      ],
+      [
+        {
+          "__expr__": "object"
+        }
+      ],
+      [
+        [
+          1,
+          2,
+          3
+        ]
+      ],
+      [
+        {
+          "__call__": "np.array",
+          "args": [
+            []
+          ],
+          "kwargs": {
+            "dtype": {
+              "__expr__": "int"
+            }
+          }
+        }
+      ],
+      [
+        "datetime64[ns, US/Eastern]"
+      ],
+      [
+        "period[D]"
+      ],
+      [
+        "datetime64"
+      ],
+      [
+        "datetime64[ns]"
+      ]
+    ],
+    "plus_input": [],
+    "atol": 0
+  },
+  "MyDataset/11": {
+    "task_id": "MyDataset/11",
+    "prompt": "def is_datetime64tz_dtype(arr_or_dtype) -> bool:\n    \"\"\"\n    Check whether an array-like or dtype is of a DatetimeTZDtype dtype.\n\n    .. deprecated:: 2.1.0\n        Use isinstance(dtype, pd.DatetimeTZDtype) instead.\n\n    Parameters\n    ----------\n    arr_or_dtype : array-like or dtype\n        The array-like or dtype to check.\n\n    Returns\n    -------\n    boolean\n        Whether or not the array-like or dtype is of a DatetimeTZDtype dtype.\n\n    See Also\n    --------\n    api.types.is_datetime64_dtype: Check whether an array-like or\n                                        dtype is of the datetime64 dtype.\n    api.types.is_datetime64_any_dtype: Check whether the provided array or\n                                        dtype is of the datetime64 dtype.\n\n    Examples\n    --------\n    >>> from pandas.api.types import is_datetime64tz_dtype\n    >>> is_datetime64tz_dtype(object)\n    False\n    >>> is_datetime64tz_dtype([1, 2, 3])\n    False\n    >>> is_datetime64tz_dtype(pd.DatetimeIndex([1, 2, 3]))  # tz-naive\n    False\n    >>> is_datetime64tz_dtype(pd.DatetimeIndex([1, 2, 3], tz=\"US/Eastern\"))\n    True\n\n    >>> from pandas import DatetimeTZDtype\n    >>> dtype = DatetimeTZDtype(\"ns\", tz=\"US/Eastern\")\n    >>> s = pd.Series([], dtype=dtype)\n    >>> is_datetime64tz_dtype(dtype)\n    True\n    >>> is_datetime64tz_dtype(s)\n    True\n    \"\"\"\n",
+    "canonical_solution": "    warnings.warn(\n        \"is_datetime64tz_dtype is deprecated and will be removed in a future \"\n        \"version. Check `isinstance(dtype, pd.DatetimeTZDtype)` instead.\",\n        Pandas4Warning,\n        stacklevel=2,\n    )\n    if isinstance(arr_or_dtype, DatetimeTZDtype):\n        # GH#33400 fastpath for dtype object\n        # GH 34986\n        return True\n\n    if arr_or_dtype is None:\n        return False\n    return DatetimeTZDtype.is_dtype(arr_or_dtype)\n",
+    "entry_point": "is_datetime64tz_dtype",
+    "base_input": [
+      [
+        {
+          "__expr__": "object"
+        }
+      ],
+      [
+        [
+          1,
+          2,
+          3
+        ]
+      ],
+      [
+        "datetime64[ns, US/Eastern]"
+      ],
+      [
+        {
+          "__call__": "np.dtype",
+          "args": [
+            "float64"
+          ],
+          "kwargs": {}
+        }
+      ],
+      [
+        1.0
+      ],
+      [
+        "datetime64"
+      ],
+      [
+        "datetime64[ns]"
+      ]
+    ],
+    "plus_input": [],
+    "atol": 0
+  },
+  "MyDataset/12": {
+    "task_id": "MyDataset/12",
+    "prompt": "def is_timedelta64_dtype(arr_or_dtype) -> bool:\n    \"\"\"\n    Check whether an array-like or dtype is of the timedelta64 dtype.\n\n    This function checks if the provided array-like object or dtype\n    corresponds to a timedelta64 dtype, which is used to represent\n    differences between two datetime values.\n\n    Parameters\n    ----------\n    arr_or_dtype : array-like or dtype\n        The array-like or dtype to check.\n\n    Returns\n    -------\n    boolean\n        Whether or not the array-like or dtype is of the timedelta64 dtype.\n\n    See Also\n    --------\n    api.types.is_timedelta64_ns_dtype : Check whether the provided array or dtype is\n        of the timedelta64[ns] dtype.\n    api.types.is_period_dtype : Check whether an array-like or dtype is of the\n        Period dtype.\n\n    Examples\n    --------\n    >>> from pandas.api.types import is_timedelta64_dtype\n    >>> is_timedelta64_dtype(object)\n    False\n    >>> is_timedelta64_dtype(np.timedelta64)\n    True\n    >>> is_timedelta64_dtype([1, 2, 3])\n    False\n    >>> is_timedelta64_dtype(pd.Series([], dtype=\"timedelta64[ns]\"))\n    True\n    >>> is_timedelta64_dtype(\"0 days\")\n    False\n    \"\"\"\n",
+    "canonical_solution": "    if isinstance(arr_or_dtype, np.dtype):\n        # GH#33400 fastpath for dtype object\n        return arr_or_dtype.kind == \"m\"\n\n    return _is_dtype_type(arr_or_dtype, classes(np.timedelta64))\n",
+    "entry_point": "is_timedelta64_dtype",
+    "base_input": [
+      [
+        {
+          "__expr__": "np.timedelta64"
+        }
+      ],
+      [
+        {
+          "__expr__": "object"
+        }
+      ],
+      [
+        null
+      ],
+      [
+        [
+          1,
+          2,
+          3
+        ]
+      ],
+      [
+        {
+          "__call__": "np.array",
+          "args": [
+            []
+          ],
+          "kwargs": {
+            "dtype": {
+              "__expr__": "np.datetime64"
+            }
+          }
+        }
+      ],
+      [
+        "0 days"
+      ],
+      [
+        "0 days 00:00:00"
+      ],
+      [
+        [
+          "0 days 00:00:00"
+        ]
+      ],
+      [
+        "NO DATE"
+      ],
+      [
+        "timedelta64"
+      ]
+    ],
+    "plus_input": [
+      [
+        "timedelta64[ns]"
+      ]
+    ],
+    "atol": 0
+  },
+  "MyDataset/13": {
+    "task_id": "MyDataset/13",
+    "prompt": "def is_period_dtype(arr_or_dtype) -> bool:\n    \"\"\"\n    Check whether an array-like or dtype is of the Period dtype.\n\n    .. deprecated:: 2.2.0\n        Use isinstance(dtype, pd.PeriodDtype) instead.\n\n    Parameters\n    ----------\n    arr_or_dtype : array-like or dtype\n        The array-like or dtype to check.\n\n    Returns\n    -------\n    boolean\n        Whether or not the array-like or dtype is of the Period dtype.\n\n    See Also\n    --------\n    api.types.is_timedelta64_ns_dtype : Check whether the provided array or dtype is\n        of the timedelta64[ns] dtype.\n    api.types.is_timedelta64_dtype: Check whether an array-like or dtype\n        is of the timedelta64 dtype.\n\n    Examples\n    --------\n    >>> from pandas.api.types import is_period_dtype\n    >>> is_period_dtype(object)\n    False\n    >>> is_period_dtype(pd.PeriodDtype(freq=\"D\"))\n    True\n    >>> is_period_dtype([1, 2, 3])\n    False\n    >>> is_period_dtype(pd.Period(\"2017-01-01\"))\n    False\n    >>> is_period_dtype(pd.PeriodIndex([], freq=\"Y\"))\n    True\n    \"\"\"\n",
+    "canonical_solution": "    warnings.warn(\n        \"is_period_dtype is deprecated and will be removed in a future version. \"\n        \"Use `isinstance(dtype, pd.PeriodDtype)` instead\",\n        Pandas4Warning,\n        stacklevel=2,\n    )\n    if isinstance(arr_or_dtype, ExtensionDtype):\n        # GH#33400 fastpath for dtype object\n        return arr_or_dtype.type is Period\n\n    if arr_or_dtype is None:\n        return False\n    return PeriodDtype.is_dtype(arr_or_dtype)\n",
+    "entry_point": "is_period_dtype",
+    "base_input": [
+      [
+        {
+          "__call__": "pandas.api.types.PeriodDtype",
+          "args": [],
+          "kwargs": {
+            "freq": "D"
+          }
+        }
+      ],
+      [
+        {
+          "__expr__": "object"
+        }
+      ],
+      [
+        [
+          1,
+          2,
+          3
+        ]
+      ],
+      [
+        {
+          "__call__": "np.dtype",
+          "args": [
+            "float64"
+          ],
+          "kwargs": {}
+        }
+      ],
+      [
+        1.0
+      ]
+    ],
+    "plus_input": [],
+    "atol": 0
+  },
+  "MyDataset/14": {
+    "task_id": "MyDataset/14",
+    "prompt": "def is_interval_dtype(arr_or_dtype) -> bool:\n    \"\"\"\n    Check whether an array-like or dtype is of the Interval dtype.\n\n    .. deprecated:: 2.2.0\n        Use isinstance(dtype, pd.IntervalDtype) instead.\n\n    Parameters\n    ----------\n    arr_or_dtype : array-like or dtype\n        The array-like or dtype to check.\n\n    Returns\n    -------\n    boolean\n        Whether or not the array-like or dtype is of the Interval dtype.\n\n    See Also\n    --------\n    api.types.is_object_dtype : Check whether an array-like or dtype is of the\n        object dtype.\n    api.types.is_numeric_dtype : Check whether the provided array or dtype is\n        of a numeric dtype.\n    api.types.is_categorical_dtype : Check whether an array-like or dtype is of\n        the Categorical dtype.\n\n    Examples\n    --------\n    >>> from pandas.api.types import is_interval_dtype\n    >>> is_interval_dtype(object)\n    False\n    >>> is_interval_dtype(pd.IntervalDtype())\n    True\n    >>> is_interval_dtype([1, 2, 3])\n    False\n    >>>\n    >>> interval = pd.Interval(1, 2, closed=\"right\")\n    >>> is_interval_dtype(interval)\n    False\n    >>> is_interval_dtype(pd.IntervalIndex([interval]))\n    True\n    \"\"\"\n",
+    "canonical_solution": "    warnings.warn(\n        \"is_interval_dtype is deprecated and will be removed in a future version. \"\n        \"Use `isinstance(dtype, pd.IntervalDtype)` instead\",\n        Pandas4Warning,\n        stacklevel=2,\n    )\n    if isinstance(arr_or_dtype, ExtensionDtype):\n        # GH#33400 fastpath for dtype object\n        return arr_or_dtype.type is Interval\n\n    if arr_or_dtype is None:\n        return False\n    return IntervalDtype.is_dtype(arr_or_dtype)\n",
+    "entry_point": "is_interval_dtype",
+    "base_input": [
+      [
+        {
+          "__call__": "pandas.api.types.IntervalDtype",
+          "args": [],
+          "kwargs": {}
+        }
+      ],
+      [
+        {
+          "__expr__": "object"
+        }
+      ],
+      [
+        [
+          1,
+          2,
+          3
+        ]
+      ],
+      [
+        "interval[int64, both]"
+      ],
+      [
+        "U"
+      ],
+      [
+        "S"
+      ],
+      [
+        "foo"
+      ],
+      [
+        {
+          "__expr__": "np.object_"
+        }
+      ],
+      [
+        {
+          "__expr__": "np.int64"
+        }
+      ],
+      [
+        {
+          "__expr__": "np.float64"
+        }
+      ]
+    ],
+    "plus_input": [],
+    "atol": 0
+  },
+  "MyDataset/15": {
+    "task_id": "MyDataset/15",
+    "prompt": "def is_categorical_dtype(arr_or_dtype) -> bool:\n    \"\"\"\n    Check whether an array-like or dtype is of the Categorical dtype.\n\n    .. deprecated:: 2.2.0\n        Use isinstance(dtype, pd.CategoricalDtype) instead.\n\n    Parameters\n    ----------\n    arr_or_dtype : array-like or dtype\n        The array-like or dtype to check.\n\n    Returns\n    -------\n    boolean\n        Whether or not the array-like or dtype is of the Categorical dtype.\n\n    See Also\n    --------\n    api.types.is_list_like: Check if the object is list-like.\n    api.types.is_complex_dtype: Check whether the provided array or\n                                dtype is of a complex dtype.\n\n    Examples\n    --------\n    >>> from pandas.api.types import is_categorical_dtype\n    >>> from pandas import CategoricalDtype\n    >>> is_categorical_dtype(object)\n    False\n    >>> is_categorical_dtype(CategoricalDtype())\n    True\n    >>> is_categorical_dtype([1, 2, 3])\n    False\n    >>> is_categorical_dtype(pd.Categorical([1, 2, 3]))\n    True\n    >>> is_categorical_dtype(pd.CategoricalIndex([1, 2, 3]))\n    True\n    \"\"\"\n",
+    "canonical_solution": "    warnings.warn(\n        \"is_categorical_dtype is deprecated and will be removed in a future \"\n        \"version. Use isinstance(dtype, pd.CategoricalDtype) instead\",\n        Pandas4Warning,\n        stacklevel=2,\n    )\n    if isinstance(arr_or_dtype, ExtensionDtype):\n        # GH#33400 fastpath for dtype object\n        return arr_or_dtype.name == \"category\"\n\n    if arr_or_dtype is None:\n        return False\n    return CategoricalDtype.is_dtype(arr_or_dtype)\n",
+    "entry_point": "is_categorical_dtype",
+    "base_input": [
+      [
+        {
+          "__call__": "pandas.api.types.CategoricalDtype",
+          "args": [],
+          "kwargs": {}
+        }
+      ],
+      [
+        {
+          "__expr__": "object"
+        }
+      ],
+      [
+        [
+          1,
+          2,
+          3
+        ]
+      ],
+      [
+        {
+          "__call__": "np.dtype",
+          "args": [
+            "float64"
+          ],
+          "kwargs": {}
+        }
+      ]
+    ],
+    "plus_input": [],
+    "atol": 0
+  },
+  "MyDataset/16": {
+    "task_id": "MyDataset/16",
+    "prompt": "def is_string_dtype(arr_or_dtype) -> bool:\n    \"\"\"\n    Check whether the provided array or dtype is of the string dtype.\n\n    If an array is passed with an object dtype, the elements must be\n    inferred as strings.\n\n    Parameters\n    ----------\n    arr_or_dtype : array-like or dtype\n        The array or dtype to check.\n\n    Returns\n    -------\n    boolean\n        Whether or not the array or dtype is of the string dtype.\n\n    See Also\n    --------\n    api.types.is_object_dtype : Check whether an array-like or dtype is of the\n        object dtype.\n\n    Examples\n    --------\n    >>> from pandas.api.types import is_string_dtype\n    >>> is_string_dtype(str)\n    True\n    >>> is_string_dtype(object)\n    True\n    >>> is_string_dtype(int)\n    False\n    >>> is_string_dtype(np.array([\"a\", \"b\"]))\n    True\n    >>> is_string_dtype(pd.Series([1, 2]))\n    False\n    >>> is_string_dtype(pd.Series([1, 2], dtype=object))\n    False\n    \"\"\"\n",
+    "canonical_solution": "    if hasattr(arr_or_dtype, \"dtype\") and _get_dtype(arr_or_dtype).kind == \"O\":\n        return is_all_strings(arr_or_dtype)\n\n    def condition(dtype) -> bool:\n        if is_string_or_object_np_dtype(dtype):\n            return True\n        try:\n            return dtype == \"string\"\n        except TypeError:\n            return False\n\n    return _is_dtype(arr_or_dtype, condition)\n",
+    "entry_point": "is_string_dtype",
+    "base_input": [
+      [
+        {
+          "__call__": "pandas.api.types.CategoricalDtype",
+          "args": [],
+          "kwargs": {}
+        }
+      ],
+      [
+        {
+          "__call__": "pandas.api.types.PeriodDtype",
+          "args": [
+            "D"
+          ],
+          "kwargs": {}
+        }
+      ],
+      [
+        {
+          "__call__": "pandas.api.types.IntervalDtype",
+          "args": [],
+          "kwargs": {}
+        }
+      ]
+    ],
+    "plus_input": [],
+    "atol": 0
+  },
+  "MyDataset/17": {
+    "task_id": "MyDataset/17",
+    "prompt": "def is_dtype_equal(source, target) -> bool:\n    \"\"\"\n    Check if two dtypes are equal.\n\n    This function compares two dtype specifications, handling both NumPy\n    dtypes and pandas ExtensionDtypes. String representations of dtypes\n    are also supported and will be resolved before comparison.\n\n    Parameters\n    ----------\n    source : type or str\n        The first dtype to compare.\n    target : type or str\n        The second dtype to compare.\n\n    Returns\n    -------\n    boolean\n        Whether or not the two dtypes are equal.\n\n    See Also\n    --------\n    api.types.is_categorical_dtype : Check whether the provided array or dtype\n                                            is of the Categorical dtype.\n    api.types.is_string_dtype : Check whether the provided array or dtype\n                                       is of the string dtype.\n    api.types.is_object_dtype : Check whether an array-like or dtype is of the\n                                       object dtype.\n\n    Examples\n    --------\n    >>> from pandas.api.types import is_dtype_equal\n    >>> is_dtype_equal(int, float)\n    False\n    >>> is_dtype_equal(\"int\", int)\n    True\n    >>> is_dtype_equal(object, \"category\")\n    False\n    >>> from pandas.api.types import CategoricalDtype\n    >>> is_dtype_equal(CategoricalDtype(), \"category\")\n    True\n    >>> from pandas.api.types import DatetimeTZDtype\n    >>> is_dtype_equal(DatetimeTZDtype(tz=\"UTC\"), \"datetime64\")\n    False\n    \"\"\"\n",
+    "canonical_solution": "    if isinstance(target, str):\n        if not isinstance(source, str):\n            # GH#38516 ensure we get the same behavior from\n            #  is_dtype_equal(CDT, \"category\") and CDT == \"category\"\n            try:\n                src = _get_dtype(source)\n                if isinstance(src, ExtensionDtype):\n                    return src == target\n            except (TypeError, AttributeError, ImportError):\n                return False\n    elif isinstance(source, str):\n        return is_dtype_equal(target, source)\n\n    try:\n        source = _get_dtype(source)\n        target = _get_dtype(target)\n        return source == target\n    except (TypeError, AttributeError, ImportError):\n        # invalid comparison\n        # object == category will hit this\n        return False\n",
+    "entry_point": "is_dtype_equal",
+    "base_input": [
+      [
+        {
+          "__call__": "np.dtype",
+          "args": [
+            "M8[ns]"
+          ],
+          "kwargs": {}
+        },
+        "datetime64[ns]"
+      ],
+      [
+        {
+          "__call__": "pandas.api.types.PeriodDtype",
+          "args": [
+            "D"
+          ],
+          "kwargs": {}
+        },
+        {
+          "__call__": "pandas.api.types.PeriodDtype",
+          "args": [
+            "D"
+          ],
+          "kwargs": {}
+        }
+      ],
+      [
+        {
+          "__call__": "pandas.api.types.IntervalDtype",
+          "args": [
+            "int64",
+            "right"
+          ],
+          "kwargs": {}
+        },
+        {
+          "__call__": "pandas.api.types.IntervalDtype",
+          "args": [
+            "int64",
+            "right"
+          ],
+          "kwargs": {}
+        }
+      ],
+      [
+        {
+          "__call__": "pandas.api.types.DatetimeTZDtype",
+          "args": [
+            "ns",
+            "US/Eastern"
+          ],
+          "kwargs": {}
+        },
+        {
+          "__call__": "pandas.api.types.DatetimeTZDtype",
+          "args": [
+            "ns",
+            "US/Pacific"
+          ],
+          "kwargs": {}
+        }
+      ],
+      [
+        {
+          "__call__": "pandas.api.types.PeriodDtype",
+          "args": [
+            "D"
+          ],
+          "kwargs": {}
+        },
+        {
+          "__call__": "pandas.api.types.PeriodDtype",
+          "args": [
+            "2D"
+          ],
+          "kwargs": {}
+        }
+      ],
+      [
+        {
+          "__call__": "pandas.api.types.IntervalDtype",
+          "args": [
+            "int64",
+            "right"
+          ],
+          "kwargs": {}
+        },
+        {
+          "__call__": "pandas.api.types.IntervalDtype",
+          "args": [
+            "int64"
+          ],
+          "kwargs": {}
+        }
+      ],
+      [
+        {
+          "__call__": "pandas.api.types.IntervalDtype",
+          "args": [
+            "int64",
+            "neither"
+          ],
+          "kwargs": {}
+        },
+        {
+          "__call__": "pandas.api.types.IntervalDtype",
+          "args": [
+            "float64",
+            "right"
+          ],
+          "kwargs": {}
+        }
+      ],
+      [
+        {
+          "__call__": "pandas.api.types.IntervalDtype",
+          "args": [
+            "int64",
+            "both"
+          ],
+          "kwargs": {}
+        },
+        {
+          "__call__": "pandas.api.types.IntervalDtype",
+          "args": [
+            "int64",
+            "left"
+          ],
+          "kwargs": {}
+        }
+      ]
+    ],
+    "plus_input": [],
+    "atol": 0
+  },
+  "MyDataset/18": {
+    "task_id": "MyDataset/18",
+    "prompt": "def is_datetime64_any_dtype(arr_or_dtype) -> bool:\n    \"\"\"\n    Check whether the provided array or dtype is of the datetime64 dtype.\n\n    Unlike :func:`api.types.is_datetime64_dtype`, this function also\n    considers timezone-aware dtypes such as ``DatetimeTZDtype`` to be\n    datetime64 dtypes.\n\n    Parameters\n    ----------\n    arr_or_dtype : array-like or dtype\n        The array or dtype to check.\n\n    Returns\n    -------\n    bool\n        Whether or not the array or dtype is of the datetime64 dtype.\n\n    See Also\n    --------\n    api.types.is_datetime64_dtype : Check whether an array-like or dtype is of the\n        datetime64 dtype.\n    api.is_datetime64_ns_dtype : Check whether the provided array or dtype is of the\n        datetime64[ns] dtype.\n    api.is_datetime64tz_dtype : Check whether an array-like or dtype is of a\n        DatetimeTZDtype dtype.\n\n    Examples\n    --------\n    >>> from pandas.api.types import is_datetime64_any_dtype\n    >>> from pandas.api.types import DatetimeTZDtype\n    >>> is_datetime64_any_dtype(str)\n    False\n    >>> is_datetime64_any_dtype(int)\n    False\n    >>> is_datetime64_any_dtype(np.datetime64)  # can be tz-naive\n    True\n    >>> is_datetime64_any_dtype(DatetimeTZDtype(\"ns\", \"US/Eastern\"))\n    True\n    >>> is_datetime64_any_dtype(np.array([\"a\", \"b\"]))\n    False\n    >>> is_datetime64_any_dtype(np.array([1, 2]))\n    False\n    >>> is_datetime64_any_dtype(np.array([], dtype=\"datetime64[ns]\"))\n    True\n    >>> is_datetime64_any_dtype(pd.DatetimeIndex([1, 2, 3], dtype=\"datetime64[ns]\"))\n    True\n    \"\"\"\n",
+    "canonical_solution": "    if isinstance(arr_or_dtype, (np.dtype, ExtensionDtype)):\n        # GH#33400 fastpath for dtype object\n        return arr_or_dtype.kind == \"M\"\n\n    if arr_or_dtype is None:\n        return False\n\n    try:\n        tipo = _get_dtype(arr_or_dtype)\n    except TypeError:\n        return False\n    return (\n        lib.is_np_dtype(tipo, \"M\")\n        or isinstance(tipo, DatetimeTZDtype)\n        or (isinstance(tipo, ExtensionDtype) and tipo.kind == \"M\")\n    )\n",
+    "entry_point": "is_datetime64_any_dtype",
+    "base_input": [
+      [
+        {
+          "__expr__": "np.datetime64"
+        }
+      ],
+      [
+        {
+          "__call__": "np.array",
+          "args": [
+            []
+          ],
+          "kwargs": {
+            "dtype": {
+              "__expr__": "np.datetime64"
+            }
+          }
+        }
+      ],
+      [
+        {
+          "__call__": "pandas.api.types.DatetimeTZDtype",
+          "args": [
+            "ns",
+            "US/Eastern"
+          ],
+          "kwargs": {}
+        }
+      ],
+      [
+        {
+          "__expr__": "int"
+        }
+      ],
+      [
+        {
+          "__expr__": "str"
+        }
+      ],
+      [
+        {
+          "__call__": "np.array",
+          "args": [
+            [
+              1,
+              2
+            ]
+          ],
+          "kwargs": {}
+        }
+      ],
+      [
+        {
+          "__call__": "np.array",
+          "args": [
+            [
+              "a",
+              "b"
+            ]
+          ],
+          "kwargs": {}
+        }
+      ],
+      [
+        "datetime64[ns, US/Eastern]"
+      ],
+      [
+        "datetime64"
+      ],
+      [
+        "datetime64[ns]"
+      ]
+    ],
+    "plus_input": [],
+    "atol": 0
+  },
+  "MyDataset/19": {
+    "task_id": "MyDataset/19",
+    "prompt": "def is_datetime64_ns_dtype(arr_or_dtype) -> bool:\n    \"\"\"\n    Check whether the provided array or dtype is of the datetime64[ns] dtype.\n\n    This function is more restrictive than :func:`api.types.is_datetime64_dtype`\n    because it requires the dtype to have nanosecond resolution specifically,\n    including timezone-aware ``DatetimeTZDtype`` with nanosecond units.\n\n    Parameters\n    ----------\n    arr_or_dtype : array-like or dtype\n        The array or dtype to check.\n\n    Returns\n    -------\n    bool\n        Whether or not the array or dtype is of the datetime64[ns] dtype.\n\n    See Also\n    --------\n    api.types.is_datetime64_dtype: Check whether an array-like or\n                                        dtype is of the datetime64 dtype.\n    api.types.is_datetime64_any_dtype: Check whether the provided array or\n                                        dtype is of the datetime64 dtype.\n\n    Examples\n    --------\n    >>> from pandas.api.types import is_datetime64_ns_dtype\n    >>> from pandas.api.types import DatetimeTZDtype\n    >>> is_datetime64_ns_dtype(str)\n    False\n    >>> is_datetime64_ns_dtype(int)\n    False\n    >>> is_datetime64_ns_dtype(np.datetime64)  # no unit\n    False\n    >>> is_datetime64_ns_dtype(DatetimeTZDtype(\"ns\", \"US/Eastern\"))\n    True\n    >>> is_datetime64_ns_dtype(np.array([\"a\", \"b\"]))\n    False\n    >>> is_datetime64_ns_dtype(np.array([1, 2]))\n    False\n    >>> is_datetime64_ns_dtype(np.array([], dtype=\"datetime64\"))  # no unit\n    False\n    >>> is_datetime64_ns_dtype(np.array([], dtype=\"datetime64[ps]\"))  # wrong unit\n    False\n    >>> is_datetime64_ns_dtype(pd.DatetimeIndex([1, 2, 3], dtype=\"datetime64[ns]\"))\n    True\n    \"\"\"\n",
+    "canonical_solution": "    if arr_or_dtype is None:\n        return False\n    try:\n        tipo = _get_dtype(arr_or_dtype)\n    except TypeError:\n        return False\n    return tipo == DT64NS_DTYPE or (\n        isinstance(tipo, DatetimeTZDtype) and tipo.unit == \"ns\"\n    )\n",
+    "entry_point": "is_datetime64_ns_dtype",
+    "base_input": [
+      [
+        {
+          "__call__": "pandas.api.types.DatetimeTZDtype",
+          "args": [
+            "ns",
+            "US/Eastern"
+          ],
+          "kwargs": {}
+        }
+      ],
+      [
+        {
+          "__expr__": "int"
+        }
+      ],
+      [
+        {
+          "__expr__": "str"
+        }
+      ],
+      [
+        {
+          "__expr__": "np.datetime64"
+        }
+      ],
+      [
+        {
+          "__call__": "np.array",
+          "args": [
+            [
+              1,
+              2
+            ]
+          ],
+          "kwargs": {}
+        }
+      ],
+      [
+        {
+          "__call__": "np.array",
+          "args": [
+            [
+              "a",
+              "b"
+            ]
+          ],
+          "kwargs": {}
+        }
+      ],
+      [
+        {
+          "__call__": "np.array",
+          "args": [
+            []
+          ],
+          "kwargs": {
+            "dtype": {
+              "__expr__": "np.datetime64"
+            }
+          }
+        }
+      ],
+      [
+        {
+          "__call__": "np.array",
+          "args": [
+            []
+          ],
+          "kwargs": {
+            "dtype": "datetime64[ps]"
+          }
+        }
+      ],
+      [
+        {
+          "__call__": "pandas.api.types.DatetimeTZDtype",
+          "args": [
+            "us",
+            "US/Eastern"
+          ],
+          "kwargs": {}
+        }
+      ],
+      [
+        "datetime64[ns, US/Eastern]"
+      ]
+    ],
+    "plus_input": [
+      [
+        "period[D]"
+      ],
+      [
+        "datetime64[ns]"
+      ],
+      [
+        "datetime64"
+      ]
+    ],
+    "atol": 0
+  },
+  "MyDataset/20": {
+    "task_id": "MyDataset/20",
+    "prompt": "def is_timedelta64_ns_dtype(arr_or_dtype) -> bool:\n    \"\"\"\n    Check whether the provided array or dtype is of the timedelta64[ns] dtype.\n\n    This is a very specific dtype, so generic ones like `np.timedelta64`\n    will return False if passed into this function.\n\n    Parameters\n    ----------\n    arr_or_dtype : array-like or dtype\n        The array or dtype to check.\n\n    Returns\n    -------\n    boolean\n        Whether or not the array or dtype is of the timedelta64[ns] dtype.\n\n    See Also\n    --------\n    api.types.is_timedelta64_dtype: Check whether an array-like or dtype\n        is of the timedelta64 dtype.\n\n    Examples\n    --------\n    >>> from pandas.api.types import is_timedelta64_ns_dtype\n    >>> is_timedelta64_ns_dtype(np.dtype(\"m8[ns]\"))\n    True\n    >>> is_timedelta64_ns_dtype(np.dtype(\"m8[ps]\"))  # Wrong frequency\n    False\n    >>> is_timedelta64_ns_dtype(np.array([1, 2], dtype=\"m8[ns]\"))\n    True\n    >>> is_timedelta64_ns_dtype(np.array([1, 2], dtype=np.timedelta64))\n    False\n    \"\"\"\n",
+    "canonical_solution": "    return _is_dtype(arr_or_dtype, lambda dtype: dtype == TD64NS_DTYPE)\n",
+    "entry_point": "is_timedelta64_ns_dtype",
+    "base_input": [
+      [
+        {
+          "__call__": "np.dtype",
+          "args": [
+            "m8[ns]"
+          ],
+          "kwargs": {}
+        }
+      ],
+      [
+        {
+          "__call__": "np.array",
+          "args": [
+            [
+              1,
+              2
+            ]
+          ],
+          "kwargs": {
+            "dtype": "m8[ns]"
+          }
+        }
+      ],
+      [
+        {
+          "__call__": "np.dtype",
+          "args": [
+            "m8[ps]"
+          ],
+          "kwargs": {}
+        }
+      ],
+      [
+        {
+          "__call__": "np.array",
+          "args": [
+            [
+              1,
+              2
+            ]
+          ],
+          "kwargs": {
+            "dtype": {
+              "__expr__": "np.timedelta64"
+            }
+          }
+        }
+      ],
+      [
+        "timedelta64[ns]"
+      ],
+      [
+        "timedelta64"
+      ]
+    ],
+    "plus_input": [],
+    "atol": 0
+  },
+  "MyDataset/21": {
+    "task_id": "MyDataset/21",
+    "prompt": "def is_numeric_v_string_like(a: ArrayLike, b) -> bool:\n    \"\"\"\n    Check if we are comparing a string-like object to a numeric ndarray.\n    NumPy doesn't like to compare such objects, especially numeric arrays\n    and scalar string-likes.\n\n    Parameters\n    ----------\n    a : array-like, scalar\n        The first object to check.\n    b : array-like, scalar\n        The second object to check.\n\n    Returns\n    -------\n    boolean\n        Whether we return a comparing a string-like object to a numeric array.\n\n    Examples\n    --------\n    >>> is_numeric_v_string_like(np.array([1]), \"foo\")\n    True\n    >>> is_numeric_v_string_like(np.array([1, 2]), np.array([\"foo\"]))\n    True\n    >>> is_numeric_v_string_like(np.array([\"foo\"]), np.array([1, 2]))\n    True\n    >>> is_numeric_v_string_like(np.array([1]), np.array([2]))\n    False\n    >>> is_numeric_v_string_like(np.array([\"foo\"]), np.array([\"foo\"]))\n    False\n    \"\"\"\n",
+    "canonical_solution": "    is_a_array = isinstance(a, np.ndarray)\n    is_b_array = isinstance(b, np.ndarray)\n\n    is_a_numeric_array = is_a_array and a.dtype.kind in \"uifcb\"\n    is_b_numeric_array = is_b_array and b.dtype.kind in \"uifcb\"\n    is_a_string_array = is_a_array and a.dtype.kind in \"SU\"\n    is_b_string_array = is_b_array and b.dtype.kind in \"SU\"\n\n    is_b_scalar_string_like = not is_b_array and isinstance(b, str)\n\n    return (\n        (is_a_numeric_array and is_b_scalar_string_like)\n        or (is_a_numeric_array and is_b_string_array)\n        or (is_b_numeric_array and is_a_string_array)\n    )\n",
+    "entry_point": "is_numeric_v_string_like",
+    "base_input": [
+      [
+        {
+          "__call__": "np.array",
+          "args": [
+            [
+              1
+            ]
+          ],
+          "kwargs": {}
+        },
+        "foo"
+      ],
+      [
+        {
+          "__call__": "np.array",
+          "args": [
+            [
+              1,
+              2
+            ]
+          ],
+          "kwargs": {}
+        },
+        {
+          "__call__": "np.array",
+          "args": [
+            [
+              "foo"
+            ]
+          ],
+          "kwargs": {}
+        }
+      ],
+      [
+        {
+          "__call__": "np.array",
+          "args": [
+            [
+              "foo"
+            ]
+          ],
+          "kwargs": {}
+        },
+        {
+          "__call__": "np.array",
+          "args": [
+            [
+              1,
+              2
+            ]
+          ],
+          "kwargs": {}
+        }
+      ],
+      [
+        {
+          "__call__": "np.array",
+          "args": [
+            [
+              1
+            ]
+          ],
+          "kwargs": {}
+        },
+        1
+      ],
+      [
+        {
+          "__call__": "np.array",
+          "args": [
+            [
+              1
+            ]
+          ],
+          "kwargs": {}
+        },
+        {
+          "__call__": "np.array",
+          "args": [
+            [
+              2
+            ]
+          ],
+          "kwargs": {}
+        }
+      ],
+      [
+        {
+          "__call__": "np.array",
+          "args": [
+            [
+              "foo"
+            ]
+          ],
+          "kwargs": {}
+        },
+        {
+          "__call__": "np.array",
+          "args": [
+            [
+              "foo"
+            ]
+          ],
+          "kwargs": {}
+        }
+      ]
+    ],
+    "plus_input": [],
+    "atol": 0
+  },
+  "MyDataset/22": {
+    "task_id": "MyDataset/22",
+    "prompt": "def needs_i8_conversion(dtype: DtypeObj | None) -> bool:\n    \"\"\"\n    Check whether the dtype should be converted to int64.\n\n    Dtype \"needs\" such a conversion if the dtype is of a datetime-like dtype\n\n    Parameters\n    ----------\n    dtype : np.dtype, ExtensionDtype, or None\n\n    Returns\n    -------\n    boolean\n        Whether or not the dtype should be converted to int64.\n\n    Examples\n    --------\n    >>> needs_i8_conversion(str)\n    False\n    >>> needs_i8_conversion(np.int64)\n    False\n    >>> needs_i8_conversion(np.datetime64)\n    False\n    >>> needs_i8_conversion(np.dtype(np.datetime64))\n    True\n    >>> needs_i8_conversion(np.array([\"a\", \"b\"]))\n    False\n    >>> needs_i8_conversion(pd.Series([1, 2]))\n    False\n    >>> needs_i8_conversion(pd.Series([], dtype=\"timedelta64[ns]\"))\n    False\n    >>> needs_i8_conversion(pd.DatetimeIndex([1, 2, 3], tz=\"US/Eastern\"))\n    False\n    >>> needs_i8_conversion(pd.DatetimeIndex([1, 2, 3], tz=\"US/Eastern\").dtype)\n    True\n    \"\"\"\n",
+    "canonical_solution": "    if isinstance(dtype, np.dtype):\n        return dtype.kind in \"mM\"\n    return isinstance(dtype, (PeriodDtype, DatetimeTZDtype))\n",
+    "entry_point": "needs_i8_conversion",
+    "base_input": [
+      [
+        {
+          "__call__": "np.dtype",
+          "args": [
+            {
+              "__expr__": "np.datetime64"
+            }
+          ],
+          "kwargs": {}
+        }
+      ],
+      [
+        {
+          "__expr__": "str"
+        }
+      ],
+      [
+        {
+          "__expr__": "np.int64"
+        }
+      ],
+      [
+        {
+          "__call__": "np.array",
+          "args": [
+            [
+              "a",
+              "b"
+            ]
+          ],
+          "kwargs": {}
+        }
+      ],
+      [
+        {
+          "__expr__": "np.datetime64"
+        }
+      ]
+    ],
+    "plus_input": [],
+    "atol": 0
+  },
+  "MyDataset/23": {
+    "task_id": "MyDataset/23",
+    "prompt": "def is_numeric_dtype(arr_or_dtype) -> bool:\n    \"\"\"\n    Check whether the provided array or dtype is of a numeric dtype.\n\n    Numeric dtypes include integer, float, complex, and boolean types.\n    Datetime and timedelta dtypes are not considered numeric.\n\n    Parameters\n    ----------\n    arr_or_dtype : array-like or dtype\n        The array or dtype to check.\n\n    Returns\n    -------\n    boolean\n        Whether or not the array or dtype is of a numeric dtype.\n\n    See Also\n    --------\n    api.types.is_integer_dtype: Check whether the provided array or dtype\n        is of an integer dtype.\n    api.types.is_unsigned_integer_dtype: Check whether the provided array\n        or dtype is of an unsigned integer dtype.\n    api.types.is_signed_integer_dtype: Check whether the provided array\n        or dtype is of a signed integer dtype.\n\n    Examples\n    --------\n    >>> from pandas.api.types import is_numeric_dtype\n    >>> is_numeric_dtype(str)\n    False\n    >>> is_numeric_dtype(int)\n    True\n    >>> is_numeric_dtype(float)\n    True\n    >>> is_numeric_dtype(np.uint64)\n    True\n    >>> is_numeric_dtype(np.datetime64)\n    False\n    >>> is_numeric_dtype(np.timedelta64)\n    False\n    >>> is_numeric_dtype(np.array([\"a\", \"b\"]))\n    False\n    >>> is_numeric_dtype(pd.Series([1, 2]))\n    True\n    >>> is_numeric_dtype(pd.Index([1, 2.0]))\n    True\n    >>> is_numeric_dtype(np.array([], dtype=np.timedelta64))\n    False\n    \"\"\"\n",
+    "canonical_solution": "    return _is_dtype_type(\n        arr_or_dtype, _classes_and_not_datetimelike(np.number, np.bool_)\n    ) or _is_dtype(\n        arr_or_dtype, lambda typ: isinstance(typ, ExtensionDtype) and typ._is_numeric\n    )\n",
+    "entry_point": "is_numeric_dtype",
+    "base_input": [
+      [
+        {
+          "__expr__": "int"
+        }
+      ],
+      [
+        {
+          "__expr__": "float"
+        }
+      ],
+      [
+        {
+          "__expr__": "np.uint64"
+        }
+      ],
+      [
+        {
+          "__expr__": "str"
+        }
+      ],
+      [
+        {
+          "__expr__": "np.datetime64"
+        }
+      ],
+      [
+        {
+          "__expr__": "np.timedelta64"
+        }
+      ],
+      [
+        {
+          "__call__": "np.array",
+          "args": [
+            [
+              "a",
+              "b"
+            ]
+          ],
+          "kwargs": {}
+        }
+      ],
+      [
+        {
+          "__call__": "np.array",
+          "args": [
+            []
+          ],
+          "kwargs": {
+            "dtype": {
+              "__expr__": "np.timedelta64"
+            }
+          }
+        }
+      ]
+    ],
+    "plus_input": [],
+    "atol": 0
+  },
+  "MyDataset/24": {
+    "task_id": "MyDataset/24",
+    "prompt": "def is_any_real_numeric_dtype(arr_or_dtype) -> bool:\n    \"\"\"\n    Check whether the provided array or dtype is of a real number dtype.\n\n    Real number dtypes include integer and float types but exclude complex\n    and boolean dtypes. This is useful when operations require real-valued\n    numeric input only.\n\n    Parameters\n    ----------\n    arr_or_dtype : array-like or dtype\n        The array or dtype to check.\n\n    Returns\n    -------\n    boolean\n        Whether or not the array or dtype is of a real number dtype.\n\n    See Also\n    --------\n    is_numeric_dtype : Check if a dtype is numeric.\n    is_complex_dtype : Check if a dtype is complex.\n    is_bool_dtype : Check if a dtype is boolean.\n\n    Examples\n    --------\n    >>> from pandas.api.types import is_any_real_numeric_dtype\n    >>> is_any_real_numeric_dtype(int)\n    True\n    >>> is_any_real_numeric_dtype(float)\n    True\n    >>> is_any_real_numeric_dtype(object)\n    False\n    >>> is_any_real_numeric_dtype(str)\n    False\n    >>> is_any_real_numeric_dtype(complex(1, 2))\n    False\n    >>> is_any_real_numeric_dtype(bool)\n    False\n    \"\"\"\n",
+    "canonical_solution": "    return (\n        is_numeric_dtype(arr_or_dtype)\n        and not is_complex_dtype(arr_or_dtype)\n        and not is_bool_dtype(arr_or_dtype)\n    )\n",
+    "entry_point": "is_any_real_numeric_dtype",
+    "base_input": [
+      [
+        {
+          "__expr__": "int"
+        }
+      ],
+      [
+        {
+          "__expr__": "float"
+        }
+      ],
+      [
+        {
+          "__call__": "np.array",
+          "args": [
+            [
+              1,
+              2.5
+            ]
+          ],
+          "kwargs": {}
+        }
+      ],
+      [
+        {
+          "__expr__": "str"
+        }
+      ],
+      [
+        {
+          "__expr__": "bool"
+        }
+      ],
+      [
+        {
+          "__expr__": "object"
+        }
+      ],
+      [
+        {
+          "__expr__": "np.datetime64"
+        }
+      ]
+    ],
+    "plus_input": [],
+    "atol": 0
+  },
+  "MyDataset/25": {
+    "task_id": "MyDataset/25",
+    "prompt": "def is_float_dtype(arr_or_dtype) -> bool:\n    \"\"\"\n    Check whether the provided array or dtype is of a float dtype.\n\n    The function checks for floating-point data types, which represent real numbers\n    that may have fractional components.\n\n    Parameters\n    ----------\n    arr_or_dtype : array-like or dtype\n        The array or dtype to check.\n\n    Returns\n    -------\n    boolean\n        Whether or not the array or dtype is of a float dtype.\n\n    See Also\n    --------\n    api.types.is_numeric_dtype : Check whether the provided array or dtype is of\n        a numeric dtype.\n    api.types.is_integer_dtype : Check whether the provided array or dtype is of\n        an integer dtype.\n    api.types.is_object_dtype : Check whether an array-like or dtype is of the\n        object dtype.\n\n    Examples\n    --------\n    >>> from pandas.api.types import is_float_dtype\n    >>> is_float_dtype(str)\n    False\n    >>> is_float_dtype(int)\n    False\n    >>> is_float_dtype(float)\n    True\n    >>> is_float_dtype(np.array([\"a\", \"b\"]))\n    False\n    >>> is_float_dtype(pd.Series([1, 2]))\n    False\n    >>> is_float_dtype(pd.Index([1, 2.0]))\n    True\n    \"\"\"\n",
+    "canonical_solution": "    return _is_dtype_type(arr_or_dtype, classes(np.floating)) or _is_dtype(\n        arr_or_dtype, lambda typ: isinstance(typ, ExtensionDtype) and typ.kind in \"f\"\n    )\n",
+    "entry_point": "is_float_dtype",
+    "base_input": [
+      [
+        {
+          "__expr__": "float"
+        }
+      ],
+      [
+        {
+          "__expr__": "str"
+        }
+      ],
+      [
+        {
+          "__expr__": "int"
+        }
+      ],
+      [
+        {
+          "__call__": "np.array",
+          "args": [
+            [
+              "a",
+              "b"
+            ]
+          ],
+          "kwargs": {}
+        }
+      ]
+    ],
+    "plus_input": [],
+    "atol": 0
+  },
+  "MyDataset/26": {
+    "task_id": "MyDataset/26",
+    "prompt": "def is_bool_dtype(arr_or_dtype) -> bool:\n    \"\"\"\n    Check whether the provided array or dtype is of a boolean dtype.\n\n    This function verifies whether a given object is a boolean data type. The input\n    can be an array or a dtype object. Accepted array types include instances\n    of ``np.array``, ``pd.Series``, ``pd.Index``, and similar array-like structures.\n\n    Parameters\n    ----------\n    arr_or_dtype : array-like or dtype\n        The array or dtype to check.\n\n    Returns\n    -------\n    boolean\n        Whether or not the array or dtype is of a boolean dtype.\n\n    See Also\n    --------\n    api.types.is_bool : Check if an object is a boolean.\n\n    Notes\n    -----\n    An ExtensionArray is considered boolean when the ``_is_boolean``\n    attribute is set to True.\n\n    Examples\n    --------\n    >>> from pandas.api.types import is_bool_dtype\n    >>> is_bool_dtype(str)\n    False\n    >>> is_bool_dtype(int)\n    False\n    >>> is_bool_dtype(bool)\n    True\n    >>> is_bool_dtype(np.bool_)\n    True\n    >>> is_bool_dtype(np.array([\"a\", \"b\"]))\n    False\n    >>> is_bool_dtype(pd.Series([1, 2]))\n    False\n    >>> is_bool_dtype(np.array([True, False]))\n    True\n    >>> is_bool_dtype(pd.Categorical([True, False]))\n    True\n    >>> is_bool_dtype(pd.arrays.SparseArray([True, False]))\n    True\n    \"\"\"\n",
+    "canonical_solution": "    if arr_or_dtype is None:\n        return False\n    try:\n        dtype = _get_dtype(arr_or_dtype)\n    except (TypeError, ValueError):\n        return False\n\n    if isinstance(dtype, CategoricalDtype):\n        arr_or_dtype = dtype.categories\n        # now we use the special definition for Index\n\n    if isinstance(arr_or_dtype, ABCIndex):\n        # Allow Index[object] that is all-bools or Index[\"boolean\"]\n        if arr_or_dtype.inferred_type == \"boolean\":\n            if not is_bool_dtype(arr_or_dtype.dtype):\n                # GH#52680\n                warnings.warn(\n                    \"The behavior of is_bool_dtype with an object-dtype Index \"\n                    \"of bool objects is deprecated. In a future version, \"\n                    \"this will return False. Cast the Index to a bool dtype instead.\",\n                    Pandas4Warning,\n                    stacklevel=2,\n                )\n            return True\n        return False\n    elif isinstance(dtype, ExtensionDtype):\n        return getattr(dtype, \"_is_boolean\", False)\n\n    return issubclass(dtype.type, np.bool_)\n",
+    "entry_point": "is_bool_dtype",
+    "base_input": [
+      [
+        {
+          "__expr__": "bool"
+        }
+      ],
+      [
+        {
+          "__expr__": "np.bool_"
+        }
+      ],
+      [
+        {
+          "__call__": "np.array",
+          "args": [
+            [
+              true,
+              false
+            ]
+          ],
+          "kwargs": {}
+        }
+      ],
+      [
+        "boolean"
+      ],
+      [
+        {
+          "__expr__": "int"
+        }
+      ],
+      [
+        {
+          "__expr__": "str"
+        }
+      ],
+      [
+        {
+          "__call__": "np.array",
+          "args": [
+            [
+              "a",
+              "b"
+            ]
+          ],
+          "kwargs": {}
+        }
+      ],
+      [
+        "Int64"
+      ],
+      [
+        "0 - Name"
+      ]
+    ],
+    "plus_input": [],
+    "atol": 0
+  },
+  "MyDataset/27": {
+    "task_id": "MyDataset/27",
+    "prompt": "def is_complex_dtype(arr_or_dtype) -> bool:\n    \"\"\"\n    Check whether the provided array or dtype is of a complex dtype.\n\n    Complex dtypes represent numbers with both real and imaginary parts,\n    such as ``np.complex64`` and ``np.complex128``.\n\n    Parameters\n    ----------\n    arr_or_dtype : array-like or dtype\n        The array or dtype to check.\n\n    Returns\n    -------\n    boolean\n        Whether or not the array or dtype is of a complex dtype.\n\n    See Also\n    --------\n    api.types.is_complex: Return True if given object is complex.\n    api.types.is_numeric_dtype: Check whether the provided array or\n                                dtype is of a numeric dtype.\n    api.types.is_integer_dtype: Check whether the provided array or\n                                dtype is of an integer dtype.\n\n    Examples\n    --------\n    >>> from pandas.api.types import is_complex_dtype\n    >>> is_complex_dtype(str)\n    False\n    >>> is_complex_dtype(int)\n    False\n    >>> is_complex_dtype(np.complex128)\n    True\n    >>> is_complex_dtype(np.array([\"a\", \"b\"]))\n    False\n    >>> is_complex_dtype(pd.Series([1, 2]))\n    False\n    >>> is_complex_dtype(np.array([1 + 1j, 5]))\n    True\n    \"\"\"\n",
+    "canonical_solution": "    return _is_dtype_type(arr_or_dtype, classes(np.complexfloating))\n",
+    "entry_point": "is_complex_dtype",
+    "base_input": [
+      [
+        {
+          "__expr__": "np.complex128"
+        }
+      ],
+      [
+        {
+          "__expr__": "int"
+        }
+      ],
+      [
+        {
+          "__expr__": "str"
+        }
+      ],
+      [
+        {
+          "__call__": "np.array",
+          "args": [
+            [
+              "a",
+              "b"
+            ]
+          ],
+          "kwargs": {}
+        }
+      ]
+    ],
+    "plus_input": [],
+    "atol": 0
+  },
+  "MyDataset/28": {
+    "task_id": "MyDataset/28",
+    "prompt": "def pandas_dtype(dtype) -> DtypeObj:\n    \"\"\"\n    Convert input into a pandas only dtype object or a numpy dtype object.\n\n    This function first checks for pandas extension types registered in the\n    dtype registry, then falls back to NumPy dtype resolution. It accepts\n    strings, types, numpy dtypes, and pandas ExtensionDtype instances.\n\n    Parameters\n    ----------\n    dtype : object\n        The object to be converted into a dtype.\n\n    Returns\n    -------\n    np.dtype or a pandas dtype\n        The converted dtype, which can be either a numpy dtype or a pandas dtype.\n\n    Raises\n    ------\n    TypeError if not a dtype\n\n    See Also\n    --------\n    api.types.is_dtype : Return true if the condition is satisfied for the arr_or_dtype.\n\n    Examples\n    --------\n    >>> pd.api.types.pandas_dtype(int)\n    dtype('int64')\n    \"\"\"\n",
+    "canonical_solution": "    if isinstance(dtype, np.ndarray):\n        return dtype.dtype\n    elif isinstance(dtype, (np.dtype, ExtensionDtype)):\n        return dtype\n\n    # builtin aliases\n    if dtype is str and using_string_dtype():\n        from pandas.core.arrays.string_ import StringDtype\n\n        return StringDtype(na_value=np.nan)\n\n    # registered extension types\n    result = registry.find(dtype)\n    if result is not None:\n        if isinstance(result, type):\n            # GH 31356, GH 54592\n            warnings.warn(\n                f\"Instantiating {result.__name__} without any arguments.\"\n                f\"Pass a {result.__name__} instance to silence this warning.\",\n                UserWarning,\n                stacklevel=find_stack_level(),\n            )\n            result = result()\n        return result\n\n    # try a numpy dtype\n    # raise a consistent TypeError if failed\n    try:\n        with warnings.catch_warnings():\n            # TODO: warnings.catch_warnings can be removed when numpy>2.3.0\n            # is the minimum version\n            # GH#51523 - Series.astype(np.integer) doesn't show\n            # numpy deprecation warning of np.integer\n            # Hence enabling DeprecationWarning\n            warnings.simplefilter(\"always\", DeprecationWarning)\n            npdtype = np.dtype(dtype)\n    except TypeError:\n        raise\n    except ValueError as err:\n        raise TypeError(f\"data type '{dtype}' not understood\") from err\n\n    # Any invalid dtype (such as pd.Timestamp) should raise an error.\n    # np.dtype(invalid_type).kind = 0 for such objects. However, this will\n    # also catch some valid dtypes such as object, np.object_ and 'object'\n    # which we safeguard against by catching them earlier and returning\n    # np.dtype(valid_dtype) before this condition is evaluated.\n    if is_hashable(dtype) and dtype in [\n        object,\n        np.object_,\n        \"object\",\n        \"O\",\n        \"object_\",\n    ]:\n        # check hashability to avoid errors/DeprecationWarning when we get\n        # here and `dtype` is an array\n        return npdtype\n    elif npdtype.kind == \"O\":\n        raise TypeError(f\"dtype '{dtype}' not understood\")\n\n    return npdtype\n",
+    "entry_point": "pandas_dtype",
+    "base_input": [
+      [
+        "datetime64[ns, US/Eastern]"
+      ],
+      [
+        "datetime64[ns]"
+      ],
+      [
+        "timedelta64[ns]"
+      ],
+      [
+        "category"
+      ],
+      [
+        "string[python]"
+      ],
+      [
+        {
+          "__expr__": "np.integer"
+        }
+      ],
+      [
+        "str"
+      ],
+      [
+        {
+          "__expr__": "str"
+        }
+      ],
+      [
+        "string"
+      ],
+      [
+        "str[python]"
+      ]
+    ],
+    "plus_input": [
+      [
+        "str[pyarrow]"
+      ],
+      [
+        "string[pyarrow]"
+      ],
+      [
+        "U"
+      ],
+      [
+        "S"
+      ],
+      [
+        "datetime64[ns, CET]"
+      ]
+    ],
+    "atol": 0
+  },
+  "MyDataset/29": {
+    "task_id": "MyDataset/29",
+    "prompt": "def is_number(obj: object) -> TypeGuard[Number | np.number]:\n    \"\"\"\n    Check if the object is a number.\n\n    Returns True when the object is a number, and False if is not.\n\n    Parameters\n    ----------\n    obj : any type\n        The object to check if is a number.\n\n    Returns\n    -------\n    bool\n        Whether `obj` is a number or not.\n\n    See Also\n    --------\n    api.types.is_integer: Checks a subgroup of numbers.\n\n    Examples\n    --------\n    >>> from pandas.api.types import is_number\n    >>> is_number(1)\n    True\n    >>> is_number(7.15)\n    True\n\n    Booleans are valid because they are int subclass.\n\n    >>> is_number(False)\n    True\n\n    >>> is_number(\"foo\")\n    False\n    >>> is_number(\"5\")\n    False\n    \"\"\"\n",
+    "canonical_solution": "    return isinstance(obj, (Number, np.number))\n",
+    "entry_point": "is_number",
+    "base_input": [
+      [
+        true
+      ],
+      [
+        1
+      ],
+      [
+        1.1
+      ],
+      [
+        {
+          "__call__": "np.int64",
+          "args": [
+            1
+          ],
+          "kwargs": {}
+        }
+      ],
+      [
+        {
+          "__call__": "np.float64",
+          "args": [
+            1.1
+          ],
+          "kwargs": {}
+        }
+      ],
+      [
+        {
+          "__expr__": "np.nan"
+        }
+      ],
+      [
+        {
+          "__call__": "np.timedelta64",
+          "args": [
+            1,
+            "D"
+          ],
+          "kwargs": {}
+        }
+      ],
+      [
+        null
+      ],
+      [
+        "x"
+      ],
+      [
+        {
+          "__call__": "np.datetime64",
+          "args": [
+            "2011-01-01"
+          ],
+          "kwargs": {}
+        }
+      ]
+    ],
+    "plus_input": [
+      [
+        {
+          "__call__": "np.bool_",
+          "args": [
+            false
+          ],
+          "kwargs": {}
+        }
+      ]
+    ],
+    "atol": 0
+  },
+  "MyDataset/30": {
+    "task_id": "MyDataset/30",
+    "prompt": "def is_array_like(obj: object) -> bool:\n    \"\"\"\n    Check if the object is array-like.\n\n    For an object to be considered array-like, it must be list-like and\n    have a `dtype` attribute.\n\n    Parameters\n    ----------\n    obj : The object to check\n\n    Returns\n    -------\n    is_array_like : bool\n        Whether `obj` has array-like properties.\n\n    Examples\n    --------\n    >>> is_array_like(np.array([1, 2, 3]))\n    True\n    >>> is_array_like(pd.Series([\"a\", \"b\"]))\n    True\n    >>> is_array_like(pd.Index([\"2016-01-01\"]))\n    True\n    >>> is_array_like([1, 2, 3])\n    False\n    >>> is_array_like((\"a\", \"b\"))\n    False\n    \"\"\"\n",
+    "canonical_solution": "    return is_list_like(obj) and hasattr(obj, \"dtype\")\n",
+    "entry_point": "is_array_like",
+    "base_input": [
+      [
+        {
+          "__call__": "np.array",
+          "args": [
+            [
+              "a",
+              "b"
+            ]
+          ],
+          "kwargs": {}
+        }
+      ],
+      [
+        {
+          "__call__": "np.array",
+          "args": [
+            [
+              2,
+              3
+            ]
+          ],
+          "kwargs": {}
+        }
+      ],
+      [
+        [
+          1,
+          2,
+          3
+        ]
+      ],
+      [
+        []
+      ],
+      [
+        "foo"
+      ],
+      [
+        123
+      ]
+    ],
+    "plus_input": [],
+    "atol": 0
+  },
+  "MyDataset/31": {
+    "task_id": "MyDataset/31",
+    "prompt": "def isna(obj: Scalar | Pattern | NAType | NaTType) -> bool: ...\n\n\n@overload\ndef isna(\n    obj: ArrayLike | Index | list,\n) -> npt.NDArray[np.bool_]: ...\n\n\n@overload\ndef isna(obj: NDFrameT) -> NDFrameT: ...\n\n\n# handle unions\n@overload\ndef isna(\n    obj: NDFrameT | ArrayLike | Index | list,\n) -> NDFrameT | npt.NDArray[np.bool_]: ...\n\n\n@overload\ndef isna(obj: object) -> bool | npt.NDArray[np.bool_] | NDFrame: ...\n\n\n@set_module(\"pandas\")\ndef isna(obj: object) -> bool | npt.NDArray[np.bool_] | NDFrame:\n    \"\"\"\"\"\"\n",
+    "canonical_solution": "def isna(obj: Scalar | Pattern | NAType | NaTType) -> bool: ...\n",
+    "entry_point": "isna",
+    "base_input": [
+      [],
+      [
+        {
+          "__call__": "np.array",
+          "args": [
+            {
+              "__expr__": "np.nan"
+            }
+          ],
+          "kwargs": {}
+        }
+      ],
+      [
+        {
+          "__call__": "np.array",
+          "args": [
+            {
+              "__expr__": "np.nan"
+            }
+          ],
+          "kwargs": {
+            "dtype": {
+              "__expr__": "object"
+            }
+          }
+        }
+      ],
+      [
+        [
+          [
+            false
+          ]
+        ]
+      ],
+      [
+        [
+          [
+            1
+          ],
+          [
+            2
+          ]
+        ]
+      ],
+      [
+        [
+          "foo",
+          "bar"
+        ]
+      ],
+      [
+        {
+          "__call__": "np.array",
+          "args": [
+            0.0
+          ],
+          "kwargs": {}
+        }
+      ],
+      [
+        {
+          "__call__": "np.array",
+          "args": [
+            0
+          ],
+          "kwargs": {}
+        }
+      ],
+      [
+        {
+          "__call__": "np.array",
+          "args": [
+            0.0
+          ],
+          "kwargs": {
+            "dtype": {
+              "__expr__": "object"
+            }
+          }
+        }
+      ],
+      [
+        {
+          "__call__": "np.array",
+          "args": [
+            0
+          ],
+          "kwargs": {
+            "dtype": {
+              "__expr__": "object"
+            }
+          }
+        }
+      ]
+    ],
+    "plus_input": [
+      [
+        {
+          "__call__": "datetime.now",
+          "args": [],
+          "kwargs": {}
+        }
+      ]
+    ],
+    "atol": 0
+  },
+  "MyDataset/32": {
+    "task_id": "MyDataset/32",
+    "prompt": "def min_fitting_element(start: int, step: int, lower_limit: int) -> int:\n    \"\"\"Returns the smallest element greater than or equal to the limit\"\"\"\n",
+    "canonical_solution": "    no_steps = -(-(lower_limit - start) // abs(step))\n    return start + abs(step) * no_steps\n",
+    "entry_point": "min_fitting_element",
+    "base_input": [
+      [
+        0,
+        2,
+        1
+      ],
+      [
+        1,
+        1,
+        1
+      ],
+      [
+        18,
+        -2,
+        1
+      ],
+      [
+        5,
+        -1,
+        1
+      ]
+    ],
+    "plus_input": [],
+    "atol": 0
+  },
+  "MyDataset/33": {
+    "task_id": "MyDataset/33",
+    "prompt": "def to_dict(\n    df: DataFrame,\n    orient: Literal[\"dict\", \"list\", \"series\", \"split\", \"tight\", \"index\"] = ...,\n    *,\n    into: type[MutableMappingT] | MutableMappingT,\n    index: bool = ...,\n) -> MutableMappingT: ...\n\n\n@overload\ndef to_dict(\n    df: DataFrame,\n    orient: Literal[\"records\"],\n    *,\n    into: type[MutableMappingT] | MutableMappingT,\n    index: bool = ...,\n) -> list[MutableMappingT]: ...\n\n\n@overload\ndef to_dict(\n    df: DataFrame,\n    orient: Literal[\"dict\", \"list\", \"series\", \"split\", \"tight\", \"index\"] = ...,\n    *,\n    into: type[dict] = ...,\n    index: bool = ...,\n) -> dict: ...\n\n\n@overload\ndef to_dict(\n    df: DataFrame,\n    orient: Literal[\"records\"],\n    *,\n    into: type[dict] = ...,\n    index: bool = ...,\n) -> list[dict]: ...\n\n\n# error: Incompatible default for argument \"into\" (default has type \"type[dict\n# [Any, Any]]\", argument has type \"type[MutableMappingT] | MutableMappingT\")\ndef to_dict(\n    df: DataFrame,\n    orient: Literal[\n        \"dict\", \"list\", \"series\", \"split\", \"tight\", \"records\", \"index\"\n    ] = \"dict\",\n    *,\n    into: type[MutableMappingT] | MutableMappingT = dict,  # type: ignore[assignment]\n    index: bool = True,\n) -> MutableMappingT | list[MutableMappingT]:\n    \"\"\"\"\"\"\n",
+    "canonical_solution": ") -> MutableMappingT: ...\n",
+    "entry_point": "to_dict",
+    "base_input": [
+      [],
+      [
+        "index"
+      ],
+      [
+        "records"
+      ]
+    ],
+    "plus_input": [],
+    "atol": 0
+  },
+  "MyDataset/34": {
+    "task_id": "MyDataset/34",
+    "prompt": "def stack(\n    frame: DataFrame, level=-1, dropna: bool = True, sort: bool = True\n) -> Series | DataFrame:\n    \"\"\"\n    Convert DataFrame to Series with multi-level Index. Columns become the\n    second level of the resulting hierarchical index\n\n    Returns\n    -------\n    stacked : Series or DataFrame\n    \"\"\"\n",
+    "canonical_solution": "    def stack_factorize(index):\n        if index.is_unique:\n            return index, np.arange(len(index))\n        codes, categories = factorize_from_iterable(index)\n        return categories, codes\n\n    N, K = frame.shape\n\n    # Will also convert negative level numbers and check if out of bounds.\n    level_num = frame.columns._get_level_number(level)\n\n    if isinstance(frame.columns, MultiIndex):\n        return _stack_multi_columns(\n            frame, level_num=level_num, dropna=dropna, sort=sort\n        )\n    elif isinstance(frame.index, MultiIndex):\n        new_levels = list(frame.index.levels)\n        new_codes = [lab.repeat(K) for lab in frame.index.codes]\n\n        clev, clab = stack_factorize(frame.columns)\n        new_levels.append(clev)\n        new_codes.append(np.tile(clab, N).ravel())\n\n        new_names = list(frame.index.names)\n        new_names.append(frame.columns.name)\n        new_index = MultiIndex(\n            levels=new_levels, codes=new_codes, names=new_names, verify_integrity=False\n        )\n    else:\n        levels, (ilab, clab) = zip(\n            *map(stack_factorize, (frame.index, frame.columns)), strict=True\n        )\n        codes = ilab.repeat(K), np.tile(clab, N).ravel()\n        new_index = MultiIndex(\n            levels=levels,\n            codes=codes,\n            names=[frame.index.name, frame.columns.name],\n            verify_integrity=False,\n        )\n\n    new_values: ArrayLike\n    if not frame.empty and frame._is_homogeneous_type:\n        # For homogeneous EAs, frame._values will coerce to object. So\n        # we concatenate instead.\n        dtypes = list(frame.dtypes._values)\n        dtype = dtypes[0]\n\n        if isinstance(dtype, ExtensionDtype):\n            arr = dtype.construct_array_type()\n            new_values = arr._concat_same_type(\n                [col._values for _, col in frame.items()]\n            )\n            new_values = _reorder_for_extension_array_stack(new_values, N, K)\n        else:\n            # homogeneous, non-EA\n            new_values = frame._values.ravel()\n\n    else:\n        # non-homogeneous\n        new_values = frame._values.ravel()\n\n    if dropna:\n        mask = notna(new_values)\n        new_values = new_values[mask]\n        new_index = new_index[mask]\n\n    return frame._constructor_sliced(new_values, index=new_index)\n",
+    "entry_point": "stack",
+    "base_input": [
+      [],
+      [
+        "yyy"
+      ],
+      [
+        "www"
+      ]
+    ],
+    "plus_input": [],
+    "atol": 0
+  },
+  "MyDataset/35": {
+    "task_id": "MyDataset/35",
+    "prompt": "def to_timedelta(\n    arg: str | float | timedelta,\n    unit: UnitChoices | None = ...,\n    errors: DateTimeErrorChoices = ...,\n) -> Timedelta: ...\n\n\n@overload\ndef to_timedelta(\n    arg: Series,\n    unit: UnitChoices | None = ...,\n    errors: DateTimeErrorChoices = ...,\n) -> Series: ...\n\n\n@overload\ndef to_timedelta(\n    arg: list | tuple | range | ArrayLike | Index,\n    unit: UnitChoices | None = ...,\n    errors: DateTimeErrorChoices = ...,\n) -> TimedeltaIndex: ...\n\n\n@set_module(\"pandas\")\ndef to_timedelta(\n    arg: str\n    | int\n    | float\n    | timedelta\n    | list\n    | tuple\n    | range\n    | ArrayLike\n    | Index\n    | Series,\n    unit: UnitChoices | None = None,\n    errors: DateTimeErrorChoices = \"raise\",\n) -> Timedelta | TimedeltaIndex | Series | NaTType | Any:\n    \"\"\"\"\"\"\n",
+    "canonical_solution": ") -> Timedelta: ...\n",
+    "entry_point": "to_timedelta",
+    "base_input": [
+      [
+        "1 day 1 min"
+      ],
+      [
+        "1 day"
+      ],
+      [
+        [
+          31200,
+          45678,
+          31200,
+          10000,
+          45678
+        ]
+      ],
+      [
+        [
+          "24658 days 11:15:00",
+          "NaT"
+        ]
+      ],
+      [
+        "00:00:01"
+      ],
+      [
+        "00:00:02"
+      ],
+      [
+        "NaT"
+      ],
+      [
+        106580,
+        "D"
+      ],
+      [
+        [
+          106580
+        ],
+        "D"
+      ],
+      [
+        "0.033333s"
+      ]
+    ],
+    "plus_input": [
+      [
+        "0.000001s"
+      ],
+      [
+        [
+          "0 days",
+          "1 days"
+        ]
+      ],
+      [
+        [
+          1,
+          null
+        ]
+      ],
+      [
+        [
+          "1 days",
+          "nan",
+          "nan",
+          "nan"
+        ]
+      ],
+      [
+        [
+          "1 days",
+          "nan",
+          "1 days",
+          "nan"
+        ]
+      ]
+    ],
+    "atol": 0
+  }
+}

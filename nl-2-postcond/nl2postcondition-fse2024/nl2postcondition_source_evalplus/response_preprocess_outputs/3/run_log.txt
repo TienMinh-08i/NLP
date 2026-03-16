@@ -1,0 +1,192 @@
+⚒️  Working directory : response_preprocess_outputs/3
+
+====================================================
+     🐈‍⬛  Setting up the output directory  🐈‍⬛
+====================================================
+
+Trying to load raw llm samples... 
+⚒️  Working directory : response_preprocess_outputs/3
+
+====================================================
+     🐈‍⬛  Setting up the output directory  🐈‍⬛
+====================================================
+
+Trying to load raw llm samples... 
+😊  Successfully loaded llm-generated code for 31 problems
+	Code loaded from: ['llm_gen_outputs/3/samples_partial.jsonl']
+Now copying raw llm samples and generation meta data... 
+😊  Successfully copied llm gen hydra from: llm_gen_outputs/3/.hydra problems
+😊  Successfully raw samples as reference!!
+
+====================================================
+          🐈‍⬛  Loading Benchmark Code 🐈‍⬛
+====================================================
+
+Loading benchmark problems from mydataset...
+😊  Successfully loaded 36 problems
+
+====================================================
+         🐈‍⬛  Preprocessing all Samples 🐈‍⬛
+====================================================
+
+	Added 1 samples for problem MyDataset/0
+	🐝 Duplicate summary, there are:
+		1 unique solutions on the raw character level
+		1 unique solutions on the lexical code level
+		1 unique solutions on the syntax level
+	Added 1 samples for problem MyDataset/1
+	🐝 Duplicate summary, there are:
+		1 unique solutions on the raw character level
+		1 unique solutions on the lexical code level
+		1 unique solutions on the syntax level
+	Added 1 samples for problem MyDataset/2
+	🐝 Duplicate summary, there are:
+		1 unique solutions on the raw character level
+		1 unique solutions on the lexical code level
+		1 unique solutions on the syntax level
+	Added 1 samples for problem MyDataset/3
+	🐝 Duplicate summary, there are:
+		1 unique solutions on the raw character level
+		1 unique solutions on the lexical code level
+		1 unique solutions on the syntax level
+	Added 1 samples for problem MyDataset/4
+	🐝 Duplicate summary, there are:
+		1 unique solutions on the raw character level
+		1 unique solutions on the lexical code level
+		1 unique solutions on the syntax level
+	Added 1 samples for problem MyDataset/5
+	🐝 Duplicate summary, there are:
+		1 unique solutions on the raw character level
+		1 unique solutions on the lexical code level
+		1 unique solutions on the syntax level
+	Added 1 samples for problem MyDataset/6
+	🐝 Duplicate summary, there are:
+		1 unique solutions on the raw character level
+		1 unique solutions on the lexical code level
+		1 unique solutions on the syntax level
+	Added 1 samples for problem MyDataset/7
+	🐝 Duplicate summary, there are:
+		1 unique solutions on the raw character level
+		1 unique solutions on the lexical code level
+		1 unique solutions on the syntax level
+	Added 1 samples for problem MyDataset/8
+	🐝 Duplicate summary, there are:
+		1 unique solutions on the raw character level
+		1 unique solutions on the lexical code level
+		1 unique solutions on the syntax level
+	Added 1 samples for problem MyDataset/9
+	🐝 Duplicate summary, there are:
+		1 unique solutions on the raw character level
+		1 unique solutions on the lexical code level
+		1 unique solutions on the syntax level
+	Added 1 samples for problem MyDataset/10
+	🐝 Duplicate summary, there are:
+		1 unique solutions on the raw character level
+		1 unique solutions on the lexical code level
+		1 unique solutions on the syntax level
+	Added 1 samples for problem MyDataset/11
+	🐝 Duplicate summary, there are:
+		1 unique solutions on the raw character level
+		1 unique solutions on the lexical code level
+		1 unique solutions on the syntax level
+	Added 1 samples for problem MyDataset/12
+	🐝 Duplicate summary, there are:
+		1 unique solutions on the raw character level
+		1 unique solutions on the lexical code level
+		1 unique solutions on the syntax level
+	Added 1 samples for problem MyDataset/13
+	🐝 Duplicate summary, there are:
+		1 unique solutions on the raw character level
+		1 unique solutions on the lexical code level
+		1 unique solutions on the syntax level
+	Added 1 samples for problem MyDataset/14
+	🐝 Duplicate summary, there are:
+		1 unique solutions on the raw character level
+		1 unique solutions on the lexical code level
+		1 unique solutions on the syntax level
+	Added 1 samples for problem MyDataset/15
+	🐝 Duplicate summary, there are:
+		1 unique solutions on the raw character level
+		1 unique solutions on the lexical code level
+		1 unique solutions on the syntax level
+	Added 1 samples for problem MyDataset/16
+	🐝 Duplicate summary, there are:
+		1 unique solutions on the raw character level
+		1 unique solutions on the lexical code level
+		1 unique solutions on the syntax level
+	Added 1 samples for problem MyDataset/17
+	🐝 Duplicate summary, there are:
+		1 unique solutions on the raw character level
+		1 unique solutions on the lexical code level
+		1 unique solutions on the syntax level
+	Added 1 samples for problem MyDataset/18
+	🐝 Duplicate summary, there are:
+		1 unique solutions on the raw character level
+		1 unique solutions on the lexical code level
+		1 unique solutions on the syntax level
+	Added 1 samples for problem MyDataset/19
+	🐝 Duplicate summary, there are:
+		1 unique solutions on the raw character level
+		1 unique solutions on the lexical code level
+		1 unique solutions on the syntax level
+	Added 1 samples for problem MyDataset/20
+	🐝 Duplicate summary, there are:
+		1 unique solutions on the raw character level
+		1 unique solutions on the lexical code level
+		1 unique solutions on the syntax level
+	Added 1 samples for problem MyDataset/21
+	🐝 Duplicate summary, there are:
+		1 unique solutions on the raw character level
+		1 unique solutions on the lexical code level
+		1 unique solutions on the syntax level
+	Added 1 samples for problem MyDataset/22
+	🐝 Duplicate summary, there are:
+		1 unique solutions on the raw character level
+		1 unique solutions on the lexical code level
+		1 unique solutions on the syntax level
+	Added 1 samples for problem MyDataset/23
+	🐝 Duplicate summary, there are:
+		1 unique solutions on the raw character level
+		1 unique solutions on the lexical code level
+		1 unique solutions on the syntax level
+	Added 1 samples for problem MyDataset/24
+	🐝 Duplicate summary, there are:
+		1 unique solutions on the raw character level
+		1 unique solutions on the lexical code level
+		1 unique solutions on the syntax level
+	Added 1 samples for problem MyDataset/25
+	🐝 Duplicate summary, there are:
+		1 unique solutions on the raw character level
+		1 unique solutions on the lexical code level
+		1 unique solutions on the syntax level
+	Added 1 samples for problem MyDataset/26
+	🐝 Duplicate summary, there are:
+		1 unique solutions on the raw character level
+		1 unique solutions on the lexical code level
+		1 unique solutions on the syntax level
+	Added 1 samples for problem MyDataset/27
+	🐝 Duplicate summary, there are:
+		1 unique solutions on the raw character level
+		1 unique solutions on the lexical code level
+		1 unique solutions on the syntax level
+	Added 1 samples for problem MyDataset/28
+	🐝 Duplicate summary, there are:
+		1 unique solutions on the raw character level
+		1 unique solutions on the lexical code level
+		1 unique solutions on the syntax level
+	Added 1 samples for problem MyDataset/29
+	🐝 Duplicate summary, there are:
+		1 unique solutions on the raw character level
+		1 unique solutions on the lexical code level
+		1 unique solutions on the syntax level
+	Added 1 samples for problem MyDataset/30
+
+====================================================
+🐈‍⬛ Completed Code Preprocessing, Saving jsonl file! 🐈‍⬛
+====================================================
+
+
+====================================================
+😻 Jsonl Saved to response_preprocess_outputs/3/preprocessed_samples.jsonl 😻
+====================================================
+

@@ -1,0 +1,17 @@
+⚒️  Working directory : ./response_preprocess_outputs/3_evalResults_mydataset
+
+====================================================
+     🐈‍⬛  Setting up the output directory  🐈‍⬛
+====================================================
+
+
+====================================================
+   🐈‍⬛  Running Soundness Evaluation using mydataset 🐈‍⬛
+====================================================
+
+Trying to load preprocessed samples... 
+😊  Successfully located the preprocessed samples at
+Now copying raw llm samples and generation meta data... 
+😊  Successfully copied llm gen hydra from: ./response_preprocess_outputs/3/llmGenConfig_HydraCopy problems
+😊  Successfully copied raw preprocessed samples as reference!!
+⚒️  Now, calculating the ground truth...

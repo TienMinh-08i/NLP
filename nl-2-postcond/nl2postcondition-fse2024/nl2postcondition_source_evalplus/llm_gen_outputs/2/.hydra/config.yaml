@@ -4,7 +4,7 @@ experiment:
   n_model_responses: 1
   n_per_model_call: 1
   to_generate: postcondition
-  samplesFolder: llm_gen_outputs/2
+  samplesFolder: llm_gen_outputs/3
   has_reference_code: true
   prompt_v: base
   system_prompt: You are a programming assistant that generates executable python
@@ -14,18 +14,8 @@ api:
   name: gemini
   key: GEMINI_API_KEY
 benchmarks:
-  name: evalplus
-  run_all: false
-  run_only:
-  - 156
-  - 157
-  - 158
-  - 159
-  - 160
-  - 161
-  - 162
-  - 163
-  run_except: []
-  run_range: true
-  run_start: HumanEval/156
-  run_end: HumanEval/163
+  name: mydataset
+  location: /home/22010759/Minhk16/nl2postcond/nl-2-postcond/nl2postcondition-fse2024/nl2postcondition_source_evalplus/tasks.json
+  run_range: false
+  run_start: MyDataset/0
+  run_end: MyDataset/19

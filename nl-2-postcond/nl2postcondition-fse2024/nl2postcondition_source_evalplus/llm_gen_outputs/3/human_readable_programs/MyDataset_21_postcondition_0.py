@@ -1,0 +1,8 @@
+# The postcondition ensures that return_value is True if and only if the comparison involves one numeric numpy array and one string-like object (defined as either a string-type numpy array or, for the second operand, a string scalar).
+assert return_value == (
+    (isinstance(a, np.ndarray) and a.dtype.kind in "uifcb" and not isinstance(b, np.ndarray) and isinstance(b, str)) or
+    (isinstance(a, np.ndarray) and a.dtype.kind in "uifcb" and isinstance(b, np.ndarray) and b.dtype.kind in "SU") or
+    (isinstance(b, np.ndarray) and b.dtype.kind in "uifcb" and isinstance(a, np.ndarray) and a.dtype.kind in "SU")
+)
+
+

@@ -15,7 +15,7 @@ n_per_model_call: 1
 # Should be one of postcondition, precondition, io, or code, input
 to_generate: postcondition
 
-samplesFolder: llm_gen_outputs/2
+samplesFolder: llm_gen_outputs/3
 
 # What the model has as reference to generate
 has_reference_code: true

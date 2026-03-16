@@ -1,4 +1,5 @@
 import argparse
+import hashlib
 import json
 import multiprocessing
 import os
@@ -38,6 +39,41 @@ from postcondition_checker import untrusted_postcondition_check
 # 2nd item (optional): the detailed pass/fail boolean for each input
 Result = Tuple[str, List[bool]]
 
+
+def load_problems_for_dataset(dataset: str, mini: bool = False) -> Dict[str, Any]:
+    dataset_name = dataset.lower()
+    if dataset_name in {"evalplus", "humanevalplus", "humanevalbase"}:
+        return get_human_eval_plus(mini=mini)
+    if dataset_name == "mydataset":
+        dataset_path = os.path.join(os.path.dirname(__file__), "tasks.json")
+        with open(dataset_path, "r") as f:
+            problems = json.load(f)
+
+        valid_problems = {}
+        prompt_prefix = "from __future__ import annotations\nfrom typing import overload\n"
+
+        for task_id, problem in problems.items():
+            problem = dict(problem)
+            problem["prompt"] = prompt_prefix + problem["prompt"]
+            try:
+                exec(problem["prompt"] + problem["canonical_solution"], {})
+            except Exception as exc:
+                print(f"Skipping invalid mydataset task {task_id}: {exc}")
+                continue
+            valid_problems[task_id] = problem
+
+        return valid_problems
+    raise NotImplementedError("Unsupported dataset: {}".format(dataset))
+
+
+def get_dataset_hash(dataset: str, problems: Dict[str, Any]) -> str:
+    dataset_name = dataset.lower()
+    if dataset_name in {"evalplus", "humanevalplus", "humanevalbase"}:
+        return get_human_eval_plus_hash()
+
+    payload = json.dumps(problems, sort_keys=True).encode("utf-8")
+    return hashlib.sha256(payload).hexdigest()
+
 def get_groundtruth(problems, hashcode):
     cache_file = os.path.join(CACHE_DIR, f"{hashcode}.pkl")
     if os.path.exists(cache_file):
@@ -51,21 +87,25 @@ def get_groundtruth(problems, hashcode):
     for task_id, problem in problems.items():
         #print(task_id, len(problem["base_input"]), len(problem["plus_input"]))
         #print(problem['plus_input'])
-        oracle = {}
-        oracle["base"], oracle["base_time"] = trusted_exec(
-            problem["prompt"] + problem["canonical_solution"],
-            problem["base_input"],
-            problem["entry_point"],
-            record_time=True,
-        )
+        try:
+            oracle = {}
+            oracle["base"], oracle["base_time"] = trusted_exec(
+                problem["prompt"] + problem["canonical_solution"],
+                problem["base_input"],
+                problem["entry_point"],
+                record_time=True,
+            )
 
-        oracle["plus"], oracle["plus_time"] = trusted_exec(
-            problem["prompt"] + problem["canonical_solution"],
-            problem["plus_input"],
-            problem["entry_point"],
-            record_time=True,
-        )
-        expected_output[task_id] = oracle
+            oracle["plus"], oracle["plus_time"] = trusted_exec(
+                problem["prompt"] + problem["canonical_solution"],
+                problem["plus_input"],
+                problem["entry_point"],
+                record_time=True,
+            )
+            expected_output[task_id] = oracle
+        except Exception as exc:
+            print(f"Skipping task {task_id} in get_groundtruth due to error: {exc}")
+            continue
     print(f"Expected outputs computed in {time.time() - tbegin:.2f}s")
 
     with open(cache_file, "wb") as f:
@@ -320,8 +360,7 @@ def evaluate_post_condition_soundness(flags, n_workers, postcondition_sample_dir
     
         print_and_log("⚒️  Now, calculating the ground truth...")
 
-        #problems = get_human_eval_plus(mini=flags.mini)
-        dataset_hash = get_human_eval_plus_hash()
+        dataset_hash = get_dataset_hash(flags.dataset, problems)
         expected_output = get_groundtruth(problems, dataset_hash)
         
         print_and_log("😊  Humaneval plus and ground truth loaded!! 😊")
@@ -349,27 +388,37 @@ def evaluate_post_condition_soundness(flags, n_workers, postcondition_sample_dir
             print_and_log("Reading samples...")
             for sample in tqdm(load_solutions(preprocessedSamplesFile[0])):
                 task_id = sample["task_id"]
-                solution = (
-                    sample["solution"]
-                    if "solution" in sample
-                    else problems[task_id]["prompt"] + sample["completion"]
-                )
-                sample["solution"] = solution
-                remainings.add(sample["_identifier"] + '_llmResponseNum_' + str(sample["response_num"]))
-                args = (
-                    completion_id[task_id],
-                    problems[task_id],
-                    sample,
-                    expected_output[task_id],
-                    useBaseHumanEvalOnly,
-                    not flags.test_details,  # fast_check
-                    sample["_identifier"],
-                    flags.min_time_limit,
-                    flags.gt_time_limit_factor,
-                )
-                futures.append(executor.submit(check_correctness, *args))
-                completion_id[task_id] += 1
-                n_samples += 1
+                if task_id not in problems:
+                    print_and_log(f"⚠️  Skipping sample for unknown task_id: {task_id}")
+                    continue
+                if task_id not in expected_output:
+                    print_and_log(f"⚠️  Skipping sample for task_id without ground truth: {task_id}")
+                    continue
+                try:
+                    solution = (
+                        sample["solution"]
+                        if "solution" in sample
+                        else problems[task_id]["prompt"] + sample["completion"]
+                    )
+                    sample["solution"] = solution
+                    remainings.add(sample["_identifier"] + '_llmResponseNum_' + str(sample["response_num"]))
+                    args = (
+                        completion_id[task_id],
+                        problems[task_id],
+                        sample,
+                        expected_output[task_id],
+                        useBaseHumanEvalOnly,
+                        not flags.test_details,  # fast_check
+                        sample["_identifier"],
+                        flags.min_time_limit,
+                        flags.gt_time_limit_factor,
+                    )
+                    futures.append(executor.submit(check_correctness, *args))
+                    completion_id[task_id] += 1
+                    n_samples += 1
+                except Exception as exc:
+                    print_and_log(f"⚠️  Skipping sample for task_id {task_id} due to error: {exc}")
+                    continue
 
             assert n_samples == len(remainings), "Missing problems in unfinished"
             # Allow partial evaluation - only check that we have at least 1 problem
@@ -487,12 +536,16 @@ def evaluate_post_condition_soundness(flags, n_workers, postcondition_sample_dir
 def reformat_soundness_results(soundness_results, dataset):
     to_return = []
     for task_id, results in soundness_results['eval'].items():
+        has_plus_results = 'plus' in results and len(results['plus']) > 0
         for i in range(len(results['base'])):
             this_post = {}
             this_post['task_id'] = task_id
             this_post['response_num'] = results['llm_response_num'][i]
             
-            this_post['test_set_correct'] = (results['base'][i][0] == SUCCESS and (results['plus'][i][0] == SUCCESS if dataset =="humanevalplus" else True))
+            this_post['test_set_correct'] = (
+                results['base'][i][0] == SUCCESS
+                and (results['plus'][i][0] == SUCCESS if has_plus_results else True)
+            )
             this_post['base_error'] = None
             
             # untrusted_check returns (status, details) tuple, not 3 elements
@@ -500,7 +553,7 @@ def reformat_soundness_results(soundness_results, dataset):
             if results['base'][i][0] != SUCCESS:
                 this_post['base_error'] = f"Base test failed with status: {results['base'][i][0]}"
             
-            elif dataset=="humanevalplus" and results['plus'][i][0] != SUCCESS:
+            elif has_plus_results and results['plus'][i][0] != SUCCESS:
                 this_post['base_error'] = f"Plus test failed with status: {results['plus'][i][0]}"
             
             if this_post['test_set_correct']:
@@ -779,15 +832,18 @@ def runEvalofPostconditions(flags, postcondition_sample_dir, output_dir, problem
                 wrapped_codes.append(buggy_code)
                  
         # In this case, there are no codes with eligible bad output producing inputs
-        # May use this to skip certain problems or post conditions? but for now, just continue
-        if len(wrapped_codes) == 0: 
-            print("None of the buggy codes had eligible bad output producing inputs for this problem - skipping evaluation: ")
-            print(task_id)
-            print("Press any key to continue")
-            input()
+        if len(wrapped_codes) == 0:
+            print_and_log(f"⚠️  No buggy codes with eligible inputs for {task_id} - skipping")
             continue
         #input()
-        post_condition_kill_score = evaluate_post_condition_power(wrapped_codes, postcondition_info, n_workers, flags, print_and_log)
+        try:
+            post_condition_kill_score = evaluate_post_condition_power(wrapped_codes, postcondition_info, n_workers, flags, print_and_log)
+        except Exception as exc:
+            print_and_log(f"⚠️  Skipping power eval for {task_id} postcondition {postcondition_info['response_num']} due to error: {exc}")
+            continue
+        if task_id not in post_condition_kill_score:
+            print_and_log(f"⚠️  No power results for {task_id} - skipping")
+            continue
         #input()
         to_return[i]['num_bopi_run'] = post_condition_kill_score[task_id]['num_tests_run']
         to_return[i]['num_bopi_killed'] = post_condition_kill_score[task_id]['num_tests_killed']
@@ -839,7 +895,8 @@ def main():
     parser.add_argument("--insert_alt_ground_truth", action="store_true")
     args = parser.parse_args()
 
-    if not (args.dataset.lower() == "evalplus"):
+    supported_datasets = {"evalplus", "humanevalplus", "humanevalbase", "mydataset"}
+    if args.dataset.lower() not in supported_datasets:
         raise NotImplementedError("Unsupported dataset: {}".format(args.dataset))
     
     print(args.samples_post_conditions)
@@ -874,9 +931,9 @@ def main():
         main_log = log.make_print_and_log_function(os.path.join(output_folder, "main_log.txt"))
         main_log("🪅  Multirun.yaml exists in the directory:\n{}\nProcessing all folders...".format(args.samples_post_conditions))
         
-        main_log("⚒️  Now, loading in humaneval...")
-        problems = get_human_eval_plus(mini=args.mini)
-        main_log("🪅😍😍  Success!! 😍😍🪅")
+        main_log("⚒️  Now, loading benchmark problems...")
+        problems = load_problems_for_dataset(args.dataset, mini=args.mini)
+        main_log("🪅😍😍  Benchmark loaded successfully! 😍😍🪅")
 
         for multirunFolder in os.listdir(args.samples_post_conditions):
             if multirunFolder == 'multirun.yaml': continue
@@ -889,16 +946,24 @@ def main():
                 shutil.copytree(os.path.join(args.samples_post_conditions, multirunFolder), os.path.join(output_folder, multirunFolder + '_copy'), dirs_exist_ok=True)
                 continue
             
-            assert int(multirunFolder) >=0, "Folder name is not a number, malformed samples folder!!: {}".format(multirunFolder)
+            try:
+                assert int(multirunFolder) >= 0, "Folder name is not a number, malformed samples folder!!: {}".format(multirunFolder)
+            except (AssertionError, ValueError) as exc:
+                main_log(f"⚠️  Skipping folder '{multirunFolder}': {exc}")
+                continue
             main_log("\tNow processing subfolder: {}".format(multirunFolder))
             postcondition_sample_dir = os.path.join(args.samples_post_conditions, multirunFolder)
             this_output_folder = os.path.join(output_folder, multirunFolder)
-            runEvalofPostconditions(args, postcondition_sample_dir, this_output_folder, problems)
+            try:
+                runEvalofPostconditions(args, postcondition_sample_dir, this_output_folder, problems)
+            except Exception as exc:
+                main_log(f"⚠️  Skipping subfolder '{multirunFolder}' due to error: {exc}")
+                continue
     else:
         main_log = log.make_print_and_log_function(os.path.join(output_folder, "main_log.txt"))
-        main_log("⚒️  Now, loading in humaneval...")
-        problems = get_human_eval_plus(mini=args.mini)
-        main_log("🪅😍😍  Success!! 😍😍🪅")
+        main_log("⚒️  Now, loading benchmark problems...")
+        problems = load_problems_for_dataset(args.dataset, mini=args.mini)
+        main_log("🪅😍😍  Benchmark loaded successfully! 😍😍🪅")
         runEvalofPostconditions(args, args.samples_post_conditions, output_folder, problems)
 
         
@@ -909,6 +974,13 @@ if __name__ == "__main__":
 python run_postcondition_evaluation.py \
   --dataset evalplus \
   --samples-buggy-codes ./code_mutants/distinct_code_mutants.jsonl \
-  --samples-post-conditions ./response_preprocess_outputs/1 \
+  --samples-post-conditions ./response_preprocess_outputs/3 \
+  --parallel 8
+'''
+'''
+python run_postcondition_evaluation.py \
+  --dataset mydataset \
+  --samples-buggy-codes ./mutants.jsonl \
+  --samples-post-conditions ./response_preprocess_outputs/3 \
   --parallel 8
 '''

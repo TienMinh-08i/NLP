@@ -86,6 +86,30 @@ def load_defects4j(benchmarks_cfg):
         
     return to_return
 
+def load_mydataset(benchmarks_cfg):
+    """
+    Load custom dataset in EvalPlus-like format.
+    Expect JSON format:
+    {
+        "TaskID": { problem_dict }
+    }
+    """
+    dataset_path = benchmarks_cfg.location
+    assert os.path.exists(dataset_path), f"MyDataset file not found: {dataset_path}"
+
+    with open(dataset_path, "r") as f:
+        data = json.load(f)
+
+    # sanity check format
+    for task_id, problem in data.items():
+        assert "prompt" in problem
+        assert "entry_point" in problem
+        assert "canonical_solution" in problem
+        assert "base_input" in problem
+        assert "plus_input" in problem
+
+    return data
+
 def load_benchmarks(benchmarks_cfg):
     """
     Loads the benchmark problems from the specified benchmark
@@ -98,6 +122,8 @@ def load_benchmarks(benchmarks_cfg):
         return load_evalplus_subset(benchmarks_cfg)
     elif benchmarks_cfg.name == "Defects4J" or benchmarks_cfg.name=="defects4j":
         return load_defects4j(benchmarks_cfg)
+    elif benchmarks_cfg.name == "mydataset":
+        return load_mydataset(benchmarks_cfg)
     else:
         raise ValueError("Invalid benchmark name: {}".format(benchmarks_cfg.name))
     

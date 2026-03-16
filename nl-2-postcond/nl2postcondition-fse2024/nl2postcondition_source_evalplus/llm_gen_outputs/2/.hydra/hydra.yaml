@@ -143,7 +143,7 @@ hydra:
       provider: schema
     output_dir: /home/22010759/Minhk16/nl2postcond/nl-2-postcond/nl2postcondition-fse2024/nl2postcondition_source_evalplus/llm_gen_outputs/2
     choices:
-      benchmarks: evalplus
+      benchmarks: mydataset
       api: gemini
       experiment: generateLLMSamples
       hydra/env: default
